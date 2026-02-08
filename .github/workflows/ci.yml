@@ -1,8 +1,8 @@
-name: CI 
+name: CI
 
 on:
   push:
-    branches: [ "main" ]   
+    branches: [ "main" ]
   pull_request:
     branches: [ "main" ]
 
@@ -13,6 +13,23 @@ jobs:
     steps:
       - name: Checkout del repositorio
         uses: actions/checkout@v3
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Instalar dependencias frontend
+        working-directory: ./frontend
+        run: npm install
+
+      - name: Ejecutar análisis estático (lint)
+        working-directory: ./frontend
+        run: npm run lint
+
+      - name: Build del frontend
+        working-directory: ./frontend
+        run: npm run build
 
       - name: Configurar Docker
         uses: docker/setup-buildx-action@v2
