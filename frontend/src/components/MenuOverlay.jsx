@@ -72,6 +72,15 @@ function MenuOverlay({ cerrarMenu }) {
             Nuestra ubicación
           </button>
         </li>
+
+        <li>
+          <button
+            ref={(el) => (buttonsRef.current[4] = el)}
+            onClick={() => irA("/login")}
+          >
+            Iniciar sesión
+          </button>
+        </li>
       </ul>
     </div>
   );

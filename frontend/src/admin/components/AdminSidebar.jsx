@@ -1,6 +1,5 @@
-import { NavLink, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import "../styles/admin.css";
 
 export default function AdminSidebar({ setTitulo }) {
   const [open, setOpen] = useState(false);
@@ -9,7 +8,13 @@ export default function AdminSidebar({ setTitulo }) {
   return (
     <div className="admin-sidebar">
       <div className="sidebar-top">
-        <button className="menu-toggle" onClick={() => setOpen(!open)}>
+        <button
+          type="button"
+          className="menu-toggle"
+          aria-label="Alternar menú"
+          aria-expanded={open}
+          onClick={() => setOpen(!open)}
+        >
           ☰
         </button>
         <span className="side-logo">Gimnasio</span>
@@ -18,6 +23,7 @@ export default function AdminSidebar({ setTitulo }) {
       {open && (
         <div className="dropdown-sidebar">
           <button
+            type="button"
             onClick={() => {
               navigate("/admin/servicios");
               setOpen(false);
@@ -27,6 +33,7 @@ export default function AdminSidebar({ setTitulo }) {
           </button>
 
           <button
+            type="button"
             onClick={() => {
               navigate("/admin/productos");
               setOpen(false);
@@ -36,10 +43,12 @@ export default function AdminSidebar({ setTitulo }) {
           </button>
 
           <button
+            type="button"
             onClick={() => {
-            navigate("/admin");
-            setOpen(false);}}
-            >
+              navigate("/admin");
+              setOpen(false);
+            }}
+          >
             Cerrar Sesión
           </button>
         </div>
@@ -49,6 +58,7 @@ export default function AdminSidebar({ setTitulo }) {
       <p className="side-title">Principal</p>
 
       <button
+        type="button"
         className="side-link"
         onClick={() => {
           setTitulo("Bienvenido al Panel Principal");
@@ -59,6 +69,7 @@ export default function AdminSidebar({ setTitulo }) {
       </button>
 
       <button
+        type="button"
         className="side-link"
         onClick={() => {
           setTitulo("Miembros");
@@ -69,6 +80,7 @@ export default function AdminSidebar({ setTitulo }) {
       </button>
 
       <button
+        type="button"
         className="side-link"
         onClick={() => {
           setTitulo("Registros");
@@ -81,6 +93,7 @@ export default function AdminSidebar({ setTitulo }) {
       <p className="side-title">Gestión</p>
 
       <button
+        type="button"
         className="side-link"
         onClick={() => {
           setTitulo("Membresías");
@@ -91,6 +104,7 @@ export default function AdminSidebar({ setTitulo }) {
       </button>
 
       <button
+        type="button"
         className="side-link"
         onClick={() => {
           setTitulo("Horarios");
