@@ -2,22 +2,20 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { useState } from "react";
 
 import Home from "./pages/Home";
+import Login from "./pages/Login";
 import Maquinas from "./pages/Maquinas";
 import Servicios from "./pages/Servicios";
 import Productos from "./pages/Productos";
 import Ubicacion from "./pages/Ubicacion";
-import MenuOverlay from "./components/MenuOverlay";
+import NotFound from "./pages/NotFound";
+import ServerError from "./pages/ServerError";
 
-import AdminLogin from "./admin/pages/AdminLogin";
-import AdminRegister from "./admin/pages/AdminRegister";
+import MenuOverlay from "./components/MenuOverlay";
 
 import AdminLayout from "./admin/components/AdminLayout";
 import Dashboard from "./admin/pages/Dashboard";
 import GestionServicios from "./admin/pages/GestionServicios";
 import GestionProductos from "./admin/pages/GestionProductos";
-
-import NotFound from "./pages/NotFound";
-import ServerError from "./pages/ServerError";
 
 function App() {
   const [menuAbierto, setMenuAbierto] = useState(false);
@@ -36,13 +34,11 @@ function App() {
             />
           }
         />
+        <Route path="/login" element={<Login />} />
         <Route path="/maquinas" element={<Maquinas />} />
         <Route path="/servicios" element={<Servicios />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/ubicacion" element={<Ubicacion />} />
-
-        <Route path="/admin" element={<AdminLogin />} />
-        <Route path="/admin/registro" element={<AdminRegister />} />
 
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<Dashboard />} />
@@ -50,9 +46,8 @@ function App() {
           <Route path="productos" element={<GestionProductos />} />
         </Route>
 
-        <Route path="/NotFound" element={<NotFound />} />
         <Route path="/ServerError" element={<ServerError />} />
-
+        <Route path="/NotFound" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>

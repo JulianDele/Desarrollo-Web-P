@@ -1,27 +1,57 @@
 import { useNavigate } from "react-router-dom";
+import "../styles/main.css";
 
 function Maquinas() {
   const navigate = useNavigate();
-  return (
-    <div className="pagina">
-      <h1>Máquinas</h1>
 
-      <button className="btn-inicio" onClick={() => navigate("/")}>
+  return (
+    <div className="maquinas-page">
+      <button
+        className="btn-inicio"
+        onClick={() => navigate("/")}
+        aria-label="Volver a inicio"
+      >
         Inicio
       </button>
 
-      <p>¿QUÉ GESTIONAMOS?</p>
-      <p>SISTEMA POR ROLES</p>
+      <div className="maquinas-content">
+        <h1 className="maquinas-title">Máquinas</h1>
 
-      <button onClick={() => navigate("/NotFound")}>
-        ver maquinas disponibles 
-      </button>
+        <p className="maquinas-descripcion">
+          En esta sección encontrarás las máquinas disponibles para realizar tus
+          rutinas de ejercicio según tus objetivos. Cada equipo está diseñado
+          para ayudarte a entrenar de forma segura, eficiente y a tu propio
+          ritmo.
+        </p>
+        <div className="maquinas-galeria">
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar las máquinas disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">ZONA PARA CARDIO</span>
+          </div>
 
-      <br /><br />
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar las máquinas disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">ZONA DE TREN SUPERIOR</span>
+          </div>
 
-      <button onClick={() => navigate("/ServerError")}>
-        Solicitar servicio 
-      </button>
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar las máquinas disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">ZONA DE TREN INFERIOR</span>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

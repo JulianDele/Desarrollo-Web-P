@@ -1,17 +1,53 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import MenuOverlay from "../components/MenuOverlay";
 import "../styles/main.css";
 import gymIcon from "../assets/gym.png";
+import videoBg from "../assets/gimnacio.mp4";
 
 function Home() {
   const [menuAbierto, setMenuAbierto] = useState(false);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) return;
+
+    const LIMITE_SEGUNDOS = 64;
+
+    const controlarTiempo = () => {
+      if (video.currentTime >= LIMITE_SEGUNDOS) {
+        video.currentTime = 0;
+        video.play();
+      }
+    };
+
+    video.addEventListener("timeupdate", controlarTiempo);
+
+    return () => {
+      video.removeEventListener("timeupdate", controlarTiempo);
+    };
+  }, []);
 
   return (
     <div
       className="home"
       onClick={() => menuAbierto && setMenuAbierto(false)}
     >
+      <video
+        ref={videoRef}
+        className="video-bg"
+        autoPlay
+        muted
+        playsInline
+        aria-hidden="true"
+      >
+        <source src={videoBg} type="video/mp4" />
+        Tu navegador no soporta videos HTML5.
+      </video>
+
+      <div className="overlay"></div>
+
       <div onClick={(e) => e.stopPropagation()}>
         <Navbar onToggleMenu={() => setMenuAbierto((prev) => !prev)} />
       </div>
