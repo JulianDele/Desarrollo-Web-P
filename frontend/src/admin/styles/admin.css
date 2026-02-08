@@ -1,8 +1,8 @@
 .admin-container {
   display: flex;
   height: 100vh;
-  background: #e5e5e5;
-  color: #111;
+  background: #000;
+  color: #fff;
 }
 
 .admin-sidebar {
@@ -55,10 +55,11 @@
 }
 
 .admin-navbar {
-  background: #d6d6d6;
+  background: rgba(0, 0, 0, 0.6);
   padding: 10px;
   display: flex;
   justify-content: space-between;
+  color: white;
 }
 
 .menu-toggle {
@@ -95,14 +96,14 @@
 }
 
 .admin-content {
-  padding: 20px;
-  background: #f2f2f2;
+  padding: 30px;
   min-height: 100%;
-  color: #111;
+  color: white;
+  background: linear-gradient( to bottom, #000 0%, #000 40%, #7a0000 100%);
 }
 
 .admin-form {
-  background: white;
+  background: rgb(73, 51, 51);
   max-width: 400px;
   margin-top: 20px;
   padding: 20px;
@@ -110,6 +111,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  color: #111;
 }
 
 .admin-form label {
@@ -134,9 +136,9 @@
 .admin-form button {
   margin-top: 10px;
   padding: 10px;
-  border: 1px solid #ccc;
+  border: 1px solid black;
   border-radius: 6px;
-  background-color: white;
+  background-color: rgb(110, 126, 201);
   color: #111;
   cursor: pointer;
   font-size: 14px;
