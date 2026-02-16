@@ -58,7 +58,6 @@
   cursor: pointer;
 }
 
-/*barra de menu*/
 .menu-overlay {
   position: absolute;
   top: 32px;           
@@ -557,7 +556,6 @@ nav {
   cursor: pointer;
 }
 
-/* Contenedor login */
 .login-container {
   margin-top: 40px;
   background: #ffffff;
@@ -581,7 +579,6 @@ nav {
   font-weight: bold;
 }
 
-/* Formulario */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -601,7 +598,6 @@ nav {
   border-radius: 3px;
 }
 
-/* Botón */
 .login-btn {
   margin-top: 15px;
   padding: 10px;
@@ -616,7 +612,7 @@ nav {
 .login-btn:hover {
   background: #2b6f96;
 }
-/* Wrapper para título + card */
+
 .login-wrapper {
   font-family: 'Arial', sans-serif;
   display: flex;
@@ -631,4 +627,25 @@ nav {
   font-weight: bold;
   margin-bottom: 10px;
   letter-spacing: 1px;
+}
+
+.input-error {
+  border: 2px solid red !important;
+}
+
+.error-text {
+  color: red;
+  font-size: 13px;
+  margin-top: 4px;
+  margin-bottom: 8px;
+}
+
+button:hover,
+button:focus-visible {
+  color: red;
+}
+
+a:hover,
+a:focus-visible {
+  color: red;
 }
