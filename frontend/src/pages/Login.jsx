@@ -9,7 +9,7 @@ function Login() {
     e.preventDefault();
 
     const fakeResponse = {
-      role: "ADMIN", // Cambio de roll
+      role: "ADMIN", 
       token: "fake-jwt-token"
     };
 
