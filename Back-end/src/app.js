@@ -28,7 +28,7 @@ app.get('/api/items-delay', (req, res) => {
 });
 
 // Simula un error de red para probar el manejo de errores de red
-app.get('api/network-error', (req, res) => {
+app.get('/api/network-error', (req, res) => {
     res.status(503).json({ message: 'servicio no disponible'});
 });
 
