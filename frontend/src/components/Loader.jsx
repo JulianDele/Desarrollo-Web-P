@@ -6,8 +6,8 @@ const Loader = ({ text = "Cargando información..." }) => {
     <div
       className="loader-container"
       role="status"
-      aria-live="polite"
       aria-busy="true"
+      aria-live="polite"
     >
       <div className="spinner" aria-hidden="true"></div>
       <p className="loader-text">{text}</p>
