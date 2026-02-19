@@ -52,7 +52,9 @@ function Maquinas() {
         </p>
 
         {loading && <Loader text="Cargando máquinas disponibles..." />}
+        
         {!loading && error && <ErrorMessage message={error} />}
+
         {!loading && !error && (
           <div className="maquinas-galeria">
             {maquinas.map((maquina) => (
