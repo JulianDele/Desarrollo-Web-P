@@ -11,35 +11,41 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout del repositorio
-        uses: actions/checkout@v3
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v3
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Instalar dependencias frontend
+      # FRONTEND
+      - name: Install frontend deps
         working-directory: ./frontend
         run: npm install
 
-      - name: Ejecutar análisis estático (lint)
+      - name: Lint frontend
         working-directory: ./frontend
         run: npm run lint
 
-      - name: Build del frontend
-        working-directory: ./frontend
-        run: npm run build
-      
       - name: Run frontend tests
         working-directory: ./frontend
-        run: npm test
+        run: npm run test
 
-      - name: Configurar Docker
-        uses: docker/setup-buildx-action@v2
+      - name: Build frontend
+        working-directory: ./frontend
+        run: npm run build
 
-      - name: Construir imagen Docker
+      # DOCKER BUILD TEST
+      - name: Setup Docker
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build Docker image
         run: docker build -t mi_app .
 
-      - name: Probar contenedor
-        run: docker run --rm mi_app node --version
+      - name: Run container smoke test
+        run: |
+          docker run -d -p 3000:3000 --name test_container mi_app
+          sleep 10
+          curl -f http://localhost:3000/api/test || exit 1
+          docker stop test_container
