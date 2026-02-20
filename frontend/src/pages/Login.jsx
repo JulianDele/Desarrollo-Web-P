@@ -13,6 +13,7 @@ function Login() {
   });
 
   const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
 
   const handleChange = (e) => {
     setFormData({
@@ -21,7 +22,7 @@ function Login() {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
     let newErrors = {};
@@ -40,17 +41,34 @@ function Login() {
 
     setErrors(newErrors);
 
-    // Si no hay errores, continuar
-    if (Object.keys(newErrors).length === 0) {
-      const fakeResponse = {
-        role: "ADMIN",
-        token: "fake-jwt-token",
-      };
+    if (Object.keys(newErrors).length !== 0) {
+      setServerError("");
+      return;
+    }
 
-      localStorage.setItem("token", fakeResponse.token);
-      localStorage.setItem("role", fakeResponse.role);
+    setServerError("");
 
+    try {
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setServerError(data.message || "No se pudo iniciar sesión");
+        return;
+      }
+
+      localStorage.setItem("token", data.token);
+      localStorage.setItem("role", data.role || "ADMIN");
       navigate("/admin/dashboard");
+    } catch {
+      setServerError("No se pudo conectar con el servidor");
     }
   };
 
@@ -116,6 +134,7 @@ function Login() {
             <button type="submit" className="login-btn">
               INICIAR
             </button>
+            {serverError && <p className="error-text">{serverError}</p>}
           </form>
         </div>
       </div>

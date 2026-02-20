@@ -17,7 +17,7 @@ jobs:
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 22.12.0
 
       # FRONTEND
       - name: Install frontend deps
@@ -47,5 +47,5 @@ jobs:
         run: |
           docker run -d -p 3000:3000 --name test_container mi_app
           sleep 10
-          curl -f http://localhost:3000/api/test || exit 1
-          docker stop test_container
+          curl -f http://localhost:3000/api/health || exit 1
+          docker rm -f test_container
