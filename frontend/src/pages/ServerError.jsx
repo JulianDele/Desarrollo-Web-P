@@ -10,7 +10,7 @@ export default function ServerError() {
       aria-live="assertive"
     >
       <div>
-        <button onClick={() => navigate("/")}>Regresar</button>
+        <button type="button" onClick={() => navigate("/")}>Regresar</button>
       </div>
       <h1>500</h1>
       <h2>Error interno del sistema</h2>

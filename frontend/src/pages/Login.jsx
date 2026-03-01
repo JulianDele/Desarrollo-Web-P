@@ -14,6 +14,7 @@ function Login() {
 
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
     setFormData({
@@ -47,6 +48,7 @@ function Login() {
     }
 
     setServerError("");
+    setIsSubmitting(true);
 
     try {
       const response = await fetch("/api/login", {
@@ -69,6 +71,8 @@ function Login() {
       navigate("/admin/dashboard");
     } catch {
       setServerError("No se pudo conectar con el servidor");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -81,8 +85,10 @@ function Login() {
         </div>
 
         <button
+          type="button"
           className="exit-btn"
           onClick={() => navigate("/")}
+          aria-label="Volver al inicio"
           title="Salir"
         >
           ⮐
@@ -93,48 +99,93 @@ function Login() {
         <h2 className="login-title">INGRESA TU USUARIO</h2>
 
         <div className="login-container">
-          <form onSubmit={handleSubmit} className="login-form">
+          <form
+            onSubmit={handleSubmit}
+            className="login-form"
+            aria-describedby={serverError ? "login-server-error" : undefined}
+          >
             
-            <label>NOMBRE DE USUARIO</label>
+            <label htmlFor="username">NOMBRE DE USUARIO</label>
             <input
+              id="username"
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
+              disabled={isSubmitting}
               className={errors.username ? "input-error" : ""}
+              aria-invalid={Boolean(errors.username)}
+              aria-describedby={errors.username ? "username-error" : undefined}
             />
             {errors.username && (
-              <p className="error-text">{errors.username}</p>
+              <p id="username-error" className="error-text" role="alert">
+                {errors.username}
+              </p>
             )}
 
-            <label>CORREO ELECTRONICO</label>
+            <label htmlFor="email">CORREO ELECTRONICO</label>
             <input
+              id="email"
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
+              disabled={isSubmitting}
               className={errors.email ? "input-error" : ""}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
             />
             {errors.email && (
-              <p className="error-text">{errors.email}</p>
+              <p id="email-error" className="error-text" role="alert">
+                {errors.email}
+              </p>
             )}
 
-            <label>CONTRASEÑA</label>
+            <label htmlFor="password">CONTRASEÑA</label>
             <input
+              id="password"
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
+              disabled={isSubmitting}
               className={errors.password ? "input-error" : ""}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "password-error" : undefined}
             />
             {errors.password && (
-              <p className="error-text">{errors.password}</p>
+              <p id="password-error" className="error-text" role="alert">
+                {errors.password}
+              </p>
             )}
 
-            <button type="submit" className="login-btn">
-              INICIAR
+            <button
+              type="submit"
+              className="login-btn"
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
+            >
+              {isSubmitting ? "INGRESANDO..." : "INICIAR"}
             </button>
-            {serverError && <p className="error-text">{serverError}</p>}
+
+            {isSubmitting && (
+              <div
+                className="loader-wrapper"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <div className="loader" aria-hidden="true"></div>
+                <span className="loader-text">Validando credenciales...</span>
+                <span className="sr-only">Cargando</span>
+              </div>
+            )}
+
+            {serverError && (
+              <p id="login-server-error" className="error-text" role="alert">
+                {serverError}
+              </p>
+            )}
           </form>
         </div>
       </div>

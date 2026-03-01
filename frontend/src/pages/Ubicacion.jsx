@@ -7,6 +7,7 @@ function Ubicacion() {
   return (
     <div className="ubicacion-page">
       <button
+        type="button"
         className="btn-volver-inicio"
         onClick={() => navigate("/")}
         aria-label="Volver a la página principal"
@@ -37,7 +38,9 @@ function Ubicacion() {
           <div className="linea-roja"></div>
 
           <a
-            href="#"
+            href="https://www.google.com/maps?q=Calle+Cervantes+34+Madrid"
+            target="_blank"
+            rel="noreferrer"
             className="ubicacion-link"
             aria-label="Abrir ubicación en Google Maps"
           >

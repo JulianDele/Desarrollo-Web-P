@@ -7,6 +7,7 @@ function Maquinas() {
   return (
     <div className="maquinas-page">
       <button
+        type="button"
         className="btn-inicio"
         onClick={() => navigate("/")}
         aria-label="Volver a inicio"

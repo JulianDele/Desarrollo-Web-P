@@ -9,6 +9,7 @@ function Servicios() {
   return (
     <div className="servicios-page">
       <button
+        type="button"
         className="btn-volver-inicio"
         onClick={() => navigate("/")}
         aria-label="Volver a la página principal"

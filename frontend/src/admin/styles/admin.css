@@ -46,6 +46,17 @@
 
 .side-link:hover {
   color: #ff4d4d;
+  transform: translateY(-1px);
+}
+
+.side-link:focus-visible {
+  outline: 3px solid #ff9800;
+  outline-offset: 2px;
+  color: #ff4d4d;
+}
+
+.side-link:active {
+  transform: translateY(0);
 }
 
 .admin-main {
@@ -67,7 +78,19 @@
   border: none;
   color: white;
   font-size: 20px;
+  border-radius: 8px;
+  padding: 4px 8px;
   cursor: pointer;
+}
+
+.menu-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: translateY(-1px);
+}
+
+.menu-toggle:focus-visible {
+  outline: 3px solid #ff9800;
+  outline-offset: 2px;
 }
 
 .navbar-title {
@@ -93,6 +116,17 @@
 
 .dropdown-sidebar button:hover {
   background: #444;
+  transform: translateY(-1px);
+}
+
+.dropdown-sidebar button:focus-visible {
+  outline: 3px solid #ff9800;
+  outline-offset: 2px;
+  background: #444;
+}
+
+.dropdown-sidebar button:active {
+  transform: translateY(0);
 }
 
 .admin-content {
@@ -111,7 +145,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
-  color: #111;
+  color: #fff;
 }
 
 .admin-form label {
@@ -133,6 +167,13 @@
   resize: none;
 }
 
+.admin-form input:focus-visible,
+.admin-form textarea:focus-visible {
+  border-color: #2b6f96;
+  box-shadow: 0 0 0 2px rgba(43, 111, 150, 0.25);
+  outline: none;
+}
+
 .admin-form button {
   margin-top: 10px;
   padding: 10px;
@@ -146,4 +187,25 @@
 
 .admin-form button:hover {
   background-color: #eaeaea;
+  transform: translateY(-2px);
+}
+
+.admin-form button:focus-visible {
+  outline: 3px solid #ff9800;
+  outline-offset: 2px;
+}
+
+.admin-form button:active {
+  transform: translateY(0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

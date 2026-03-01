@@ -2,43 +2,77 @@ import "../styles/main.css";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 
-function MenuOverlay({ cerrarMenu }) {
+function MenuOverlay({ cerrarMenu, triggerRef, menuId = "main-menu-overlay" }) {
   const navigate = useNavigate();
   const buttonsRef = useRef([]);
 
   useEffect(() => {
-    const handleKeyDown = (e) => {
-      const index = buttonsRef.current.indexOf(document.activeElement);
-
-      if (e.key === "ArrowDown") {
-        e.preventDefault();
-        const next = (index + 1) % buttonsRef.current.length;
-        buttonsRef.current[next].focus();
-      }
-
-      if (e.key === "ArrowUp") {
-        e.preventDefault();
-        const prev =
-          (index - 1 + buttonsRef.current.length) %
-          buttonsRef.current.length;
-        buttonsRef.current[prev].focus();
-      }
-    };
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
+    buttonsRef.current[0]?.focus();
   }, []);
 
-  const irA = (ruta) => {
+  const closeMenu = () => {
     cerrarMenu();
+
+    if (triggerRef?.current) {
+      requestAnimationFrame(() => {
+        triggerRef.current?.focus();
+      });
+    }
+  };
+
+  const irA = (ruta) => {
+    closeMenu();
     navigate(ruta);
   };
 
+  const handleKeyDown = (e) => {
+    const items = buttonsRef.current.filter(Boolean);
+    const index = items.indexOf(document.activeElement);
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      closeMenu();
+      return;
+    }
+
+    if (items.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = (index + 1 + items.length) % items.length;
+      items[next].focus();
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = (index - 1 + items.length) % items.length;
+      items[prev].focus();
+    }
+
+    if (e.key === "Home") {
+      e.preventDefault();
+      items[0].focus();
+    }
+
+    if (e.key === "End") {
+      e.preventDefault();
+      items[items.length - 1].focus();
+    }
+  };
+
   return (
-    <div className="menu-overlay">
+    <div
+      className="menu-overlay"
+      id={menuId}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Menú principal"
+      onKeyDown={handleKeyDown}
+    >
       <ul>
         <li>
           <button
+            type="button"
             ref={(el) => (buttonsRef.current[0] = el)}
             onClick={() => irA("/maquinas")}
           >
@@ -48,6 +82,7 @@ function MenuOverlay({ cerrarMenu }) {
 
         <li>
           <button
+            type="button"
             ref={(el) => (buttonsRef.current[1] = el)}
             onClick={() => irA("/servicios")}
           >
@@ -57,6 +92,7 @@ function MenuOverlay({ cerrarMenu }) {
 
         <li>
           <button
+            type="button"
             ref={(el) => (buttonsRef.current[2] = el)}
             onClick={() => irA("/productos")}
           >
@@ -66,6 +102,7 @@ function MenuOverlay({ cerrarMenu }) {
 
         <li>
           <button
+            type="button"
             ref={(el) => (buttonsRef.current[3] = el)}
             onClick={() => irA("/ubicacion")}
           >
@@ -75,6 +112,7 @@ function MenuOverlay({ cerrarMenu }) {
 
         <li>
           <button
+            type="button"
             ref={(el) => (buttonsRef.current[4] = el)}
             onClick={() => irA("/login")}
           >

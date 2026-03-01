@@ -1,5 +1,4 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useState } from "react";
 
 import Home from "./pages/Home";
 import Login from "./pages/Login";
@@ -10,30 +9,16 @@ import Ubicacion from "./pages/Ubicacion";
 import NotFound from "./pages/NotFound";
 import ServerError from "./pages/ServerError";
 
-import MenuOverlay from "./components/MenuOverlay";
-
 import AdminLayout from "./admin/components/AdminLayout";
 import Dashboard from "./admin/pages/Dashboard";
 import GestionServicios from "./admin/pages/GestionServicios";
 import GestionProductos from "./admin/pages/GestionProductos";
 
 function App() {
-  const [menuAbierto, setMenuAbierto] = useState(false);
-
   return (
     <Router>
-      {menuAbierto && <MenuOverlay cerrarMenu={() => setMenuAbierto(false)} />}
-
       <Routes>
-        <Route
-          path="/"
-          element={
-            <Home
-              menuAbierto={menuAbierto}
-              setMenuAbierto={setMenuAbierto}
-            />
-          }
-        />
+        <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/maquinas" element={<Maquinas />} />
         <Route path="/servicios" element={<Servicios />} />
