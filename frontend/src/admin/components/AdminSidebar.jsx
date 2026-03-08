@@ -50,7 +50,7 @@ export default function AdminSidebar({ setTitulo }) {
           type="button"
           className="menu-toggle"
           ref={toggleRef}
-          aria-label="Alternar menu"
+          aria-label="Alternar menú"
           aria-expanded={open}
           aria-controls={dropdownId}
           onClick={() => setOpen(!open)}
@@ -65,7 +65,7 @@ export default function AdminSidebar({ setTitulo }) {
           className="dropdown-sidebar"
           id={dropdownId}
           role="menu"
-          aria-label="Acciones rapidas"
+          aria-label="Acciones rápidas"
           onKeyDown={handleDropdownKeyDown}
         >
           <button
@@ -102,7 +102,7 @@ export default function AdminSidebar({ setTitulo }) {
               setOpen(false);
             }}
           >
-            Cerrar Sesion
+            Cerrar Sesión
           </button>
         </div>
       )}
@@ -142,7 +142,7 @@ export default function AdminSidebar({ setTitulo }) {
         Registros
       </button>
 
-      <p className="side-title">Gestion</p>
+      <p className="side-title">Gestión</p>
 
       <button
         type="button"
@@ -152,7 +152,7 @@ export default function AdminSidebar({ setTitulo }) {
           navigate("/admin/dashboard");
         }}
       >
-        Membresias
+        Membresías
       </button>
 
       <button

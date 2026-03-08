@@ -8,6 +8,8 @@ import videoBg from "../assets/gimnacio.mp4";
 function Home() {
   const [menuAbierto, setMenuAbierto] = useState(false);
   const videoRef = useRef(null);
+  const menuButtonRef = useRef(null);
+  const menuId = "main-menu-overlay";
 
   useEffect(() => {
     const video = videoRef.current;
@@ -49,10 +51,23 @@ function Home() {
       <div className="overlay"></div>
 
       <div onClick={(e) => e.stopPropagation()}>
-        <Navbar onToggleMenu={() => setMenuAbierto((prev) => !prev)} />
+        <Navbar
+          onToggleMenu={() => setMenuAbierto((prev) => !prev)}
+          menuAbierto={menuAbierto}
+          menuId={menuId}
+          menuButtonRef={menuButtonRef}
+        />
+
+        {menuAbierto && (
+          <MenuOverlay
+            cerrarMenu={() => setMenuAbierto(false)}
+            triggerRef={menuButtonRef}
+            menuId={menuId}
+          />
+        )}
       </div>
 
-      <div className="home-content">
+      <main className="home-content">
         <h1 className="titulo-gym">
           <img src={gymIcon} alt="Gym icon" />
           GIMNASIO
@@ -60,26 +75,37 @@ function Home() {
         <p>
           INFORMACIÓN RELEVANTE DEL GIMNASIO O CONTENIDO (SE TU MEJOR YO PAPS)
         </p>
-      </div>
-
-      {menuAbierto && (
-        <MenuOverlay cerrarMenu={() => setMenuAbierto(false)} />
-      )}
+      </main>
 
       <div className="contacto-fixed">
         <p>Contáctanos ya!!</p>
         <div className="contacto-iconos">
-          <a href="#" aria-label="WhatsApp">
-            <i className="fab fa-whatsapp"></i>
+          <a
+            href="https://www.whatsapp.com/"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Abrir WhatsApp en una nueva pestaña"
+          >
+            <i className="fab fa-whatsapp" aria-hidden="true"></i>
           </a>
-          <a href="#" aria-label="Facebook">
-            <i className="fab fa-facebook-f"></i>
+          <a
+            href="https://www.facebook.com/"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Abrir Facebook en una nueva pestaña"
+          >
+            <i className="fab fa-facebook-f" aria-hidden="true"></i>
           </a>
-          <a href="#" aria-label="Instagram">
-            <i className="fab fa-instagram"></i>
+          <a
+            href="https://www.instagram.com/"
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Abrir Instagram en una nueva pestaña"
+          >
+            <i className="fab fa-instagram" aria-hidden="true"></i>
           </a>
-          <a href="#" aria-label="Gmail">
-            <i className="fas fa-envelope"></i>
+          <a href="mailto:contacto@gimnasio.com" aria-label="Enviar correo a Gimnasio">
+            <i className="fas fa-envelope" aria-hidden="true"></i>
           </a>
         </div>
       </div>

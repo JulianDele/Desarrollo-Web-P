@@ -1,14 +1,9 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import "@testing-library/jest-dom";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
 import Login from "./Login";
-import { clearSession } from "../auth/session";
-import { loginUser } from "../services/api";
-
-vi.mock("../services/api", () => ({
-  loginUser: vi.fn(),
-}));
 
 function renderLogin() {
   return render(
@@ -20,9 +15,7 @@ function renderLogin() {
 
 describe("Login accessibility states", () => {
   afterEach(() => {
-    cleanup();
     vi.restoreAllMocks();
-    clearSession();
   });
 
   it("shows required field errors as alerts", async () => {
@@ -37,12 +30,12 @@ describe("Login accessibility states", () => {
 
   it("shows a loader status while submitting", async () => {
     const user = userEvent.setup();
-    let rejectLogin;
-    const pendingRequest = new Promise((_, reject) => {
-      rejectLogin = reject;
+    let resolveFetch;
+    const pendingFetch = new Promise((resolve) => {
+      resolveFetch = resolve;
     });
 
-    loginUser.mockImplementation(() => pendingRequest);
+    vi.stubGlobal("fetch", vi.fn(() => pendingFetch));
     renderLogin();
 
     await user.type(screen.getByLabelText(/nombre de usuario/i), "admin");
@@ -51,11 +44,14 @@ describe("Login accessibility states", () => {
 
     await user.click(screen.getByRole("button", { name: /iniciar/i }));
 
-    expect(screen.getByRole("status")).not.toBeNull();
-    expect(screen.getByRole("button", { name: /ingresando/i }).disabled).toBe(true);
+    expect(screen.getByRole("status")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /ingresando/i })).toBeDisabled();
 
-    rejectLogin(new Error("Credenciales inválidas"));
+    resolveFetch({
+      ok: false,
+      json: async () => ({ message: "Credenciales inválidas" }),
+    });
 
-    expect(await screen.findByText("Credenciales inválidas")).not.toBeNull();
+    expect(await screen.findByText("Credenciales inválidas")).toBeInTheDocument();
   });
 });

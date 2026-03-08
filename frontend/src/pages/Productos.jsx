@@ -1,41 +1,13 @@
 import { useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
 import "../styles/main.css";
-
-import { getProductos } from "../services/api";
-import Loader from "../components/Loader";
-import ErrorMessage from "../components/ErrorMessage";
 
 function Productos() {
   const navigate = useNavigate();
 
-  const [loading, setLoading] = useState(true);
-  const [productos, setProductos] = useState([]);
-  const [bebidas, setBebidas] = useState([]);
-  const [error, setError] = useState(null);
-
-  useEffect(() => {
-    const fetchProductos = async () => {
-      setLoading(true);
-      setError(null);
-
-      try {
-        const data = await getProductos();
-        setProductos(data.productos);
-        setBebidas(data.bebidas);
-      } catch (err) {
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProductos();
-  }, []);
-
   return (
     <div className="maquinas-page">
       <button
+        type="button"
         className="btn-inicio"
         onClick={() => navigate("/")}
         aria-label="Volver a inicio"
@@ -48,46 +20,88 @@ function Productos() {
 
         <p className="maquinas-descripcion">
           Equípate con productos diseñados para acompañarte en cada repetición,
-          cada gota de sudor y cada meta alcanzada.
+          cada gota de sudor y cada meta alcanzada. Entrena más fuerte, más
+          seguro y más inteligente. Tu mejor versión comienza aquí.
         </p>
 
-        {loading && <Loader text="Cargando productos..." />}
-        {!loading && error && <ErrorMessage message={error} />}
-
-        {!loading && !error && (
-          <div className="maquinas-galeria">
-            {productos.map((item) => (
-              <div key={item.id} className="maquina-card">
-                <div className="maquina-box">
-                  <p>{item.descripcion}</p>
-                </div>
-                <span className="maquina-titulo">{item.nombre}</span>
-              </div>
-            ))}
+        <div className="maquinas-galeria">
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar los productos disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">
+              Suplemento que ayuda a aumentar la fuerza y mejorar el rendimiento.
+            </span>
           </div>
-        )}
-      </div>
 
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar los productos disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">
+              Suplemento proteico que apoya la recuperación muscular.
+            </span>
+          </div>
+
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar los productos disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">
+              Suplemento formulado para aumentar la energía y la intensidad.
+            </span>
+          </div>
+        </div>
+      </div>
+      
       <div className="maquinas-content">
         <h1 className="maquinas-title">Bebidas</h1>
 
         <p className="maquinas-descripcion">
-          Bebidas pensadas para hidratarte antes, durante y después del
-          entrenamiento.
+          Bebidas pensadas para hidratarte, recuperar energía y acompañarte antes,
+          durante y después de tu entrenamiento. Refresca tu esfuerzo y sigue avanzando.
         </p>
 
-        {!loading && !error && (
-          <div className="maquinas-galeria">
-            {bebidas.map((item) => (
-              <div key={item.id} className="maquina-card">
-                <div className="maquina-box">
-                  <p>{item.descripcion}</p>
-                </div>
-                <span className="maquina-titulo">{item.nombre}</span>
-              </div>
-            ))}
+        <div className="maquinas-galeria">
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar las bebidas disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">
+              Bebida energética diseñada para hidratar y potenciar tu rendimiento.
+            </span>
           </div>
-        )}
+
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar las bebidas disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">
+              Bebida proteica ideal para apoyar la recuperación después del entrenamiento.
+            </span>
+          </div>
+
+          <div className="maquina-card">
+            <div className="maquina-box">
+              <p className="galeria-placeholder">
+                Próximamente aquí podrás explorar las bebidas disponibles.
+              </p>
+            </div>
+            <span className="maquina-titulo">
+              Bebida funcional que ayuda a mantener la energía y el enfoque durante el ejercicio.
+            </span>
+          </div>
+        </div>
       </div>
     </div>
   );

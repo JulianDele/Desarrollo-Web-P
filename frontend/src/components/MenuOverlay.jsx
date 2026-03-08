@@ -68,7 +68,7 @@ function MenuOverlay({ cerrarMenu, triggerRef, menuId = "main-menu-overlay" }) {
       id={menuId}
       role="dialog"
       aria-modal="true"
-      aria-label="Menu principal"
+      aria-label="Menú principal"
       onKeyDown={handleKeyDown}
     >
       <ul>
@@ -78,7 +78,7 @@ function MenuOverlay({ cerrarMenu, triggerRef, menuId = "main-menu-overlay" }) {
             ref={(el) => (buttonsRef.current[0] = el)}
             onClick={() => irA("/maquinas")}
           >
-            Ver maquinas
+            Ver máquinas
           </button>
         </li>
 
@@ -108,7 +108,7 @@ function MenuOverlay({ cerrarMenu, triggerRef, menuId = "main-menu-overlay" }) {
             ref={(el) => (buttonsRef.current[3] = el)}
             onClick={() => irA("/ubicacion")}
           >
-            Nuestra ubicacion
+            Nuestra ubicación
           </button>
         </li>
 
@@ -118,7 +118,7 @@ function MenuOverlay({ cerrarMenu, triggerRef, menuId = "main-menu-overlay" }) {
             ref={(el) => (buttonsRef.current[4] = el)}
             onClick={() => irA(token ? getDefaultRouteByRole(role) : "/login")}
           >
-            {token ? "Ir a mi panel" : "Iniciar sesion"}
+            {token ? "Ir a mi panel" : "Iniciar sesión"}
           </button>
         </li>
       </ul>

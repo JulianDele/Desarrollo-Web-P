@@ -1,0 +1,17 @@
+Implementación de Navegación y Manejo de Errores en el Frontend
+Oscar Martinez Martinez.
+
+En el frontend del sistema se implementó un mecanismo de navegación por medio de tab
+que permite a los usuarios desplazarse de forma clara y segura entre las diferentes
+pantallas de la aplicación. Este sistema se basa en rutas definidas que conectan 
+cada vista con componentes específicos, garantizando una experiencia fluida y o
+rdenada dentro del entorno web.
+
+Como parte de esta implementación, se incorporaron pantallas de error 404 y 500 
+para mejorar la gestión de fallos. La pantalla 404 se muestra cuando el usuario 
+intenta acceder a una ruta inexistente, informando que la página no fue 
+encontrada y ofreciendo opciones para regresar a una sección válida del sistema.
+Por otro lado, la pantalla 500 simula o representa un error interno del servidor,
+lo que permite mostrar un mensaje claro al usuario cuando ocurre una falla en la 
+comunicación con el backend o en el procesamiento de la información.
+

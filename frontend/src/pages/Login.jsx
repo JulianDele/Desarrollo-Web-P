@@ -2,9 +2,6 @@ import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "../styles/main.css";
 import gymLogo from "../assets/gym.png";
-import { loginUser } from "../services/api";
-import Loader from "../components/Loader";
-import ErrorMessage from "../components/ErrorMessage";
 import { getDefaultRouteByRole, getSession, setSession } from "../auth/session";
 
 function Login() {
@@ -63,21 +60,31 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await loginUser({
-        email: formData.email,
-        password: formData.password,
+      const response = await fetch("/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(formData),
       });
 
-      if (!response?.token) {
-        setServerError("Respuesta invalida del servidor");
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        setServerError(data.message || "No se pudo iniciar sesión");
         return;
       }
 
-      const serverRole = response.role || response.user?.role || "guest";
-      setSession({ token: response.token, role: serverRole });
+      if (!data.token) {
+        setServerError("Respuesta inválida del servidor");
+        return;
+      }
+
+      const serverRole = data.role || data.user?.role || "guest";
+      setSession({ token: data.token, role: serverRole });
       navigate(getDefaultRouteByRole(serverRole), { replace: true });
-    } catch (error) {
-      setServerError(error?.message || "No se pudo iniciar sesion");
+    } catch {
+      setServerError("No se pudo conectar con el servidor");
     } finally {
       setIsSubmitting(false);
     }
@@ -106,7 +113,11 @@ function Login() {
         <h2 className="login-title">INGRESA TU USUARIO</h2>
 
         <div className="login-container">
-          <form onSubmit={handleSubmit} className="login-form">
+          <form
+            onSubmit={handleSubmit}
+            className="login-form"
+            aria-describedby={serverError ? "login-server-error" : undefined}
+          >
             <label htmlFor="username">NOMBRE DE USUARIO</label>
             <input
               id="username"
@@ -170,8 +181,24 @@ function Login() {
               {isSubmitting ? "INGRESANDO..." : "INICIAR"}
             </button>
 
-            {isSubmitting && <Loader text="Validando credenciales..." />}
-            {!isSubmitting && <ErrorMessage message={serverError} />}
+            {isSubmitting && (
+              <div
+                className="loader-wrapper"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                <div className="loader" aria-hidden="true"></div>
+                <span className="loader-text">Validando credenciales...</span>
+                <span className="sr-only">Cargando</span>
+              </div>
+            )}
+
+            {serverError && (
+              <p id="login-server-error" className="error-text" role="alert">
+                {serverError}
+              </p>
+            )}
           </form>
         </div>
       </div>

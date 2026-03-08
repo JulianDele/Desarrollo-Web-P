@@ -1,4 +1,36 @@
 @import url('https://fonts.googleapis.com/css2?family=Anton&display=swap');
+:root {
+  --color-accent: #ff4d4d;
+  --color-accent-strong: #b30000;
+  --color-focus: #ff9800;
+}
+
+button,
+a,
+input,
+textarea,
+select {
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease,
+    transform 0.1s ease;
+}
+
+button:active {
+  transform: translateY(0);
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: 3px solid var(--color-focus);
+  outline-offset: 3px;
+}
+
 .home {
   width: 100%;
   height: 100vh;
@@ -52,52 +84,82 @@
 
 .menu-btn {
   font-size: 32px;
-  background: none;
-  border: none;
+  background:transparent;
+  border: 1px solid rgba(255, 255, 255, 0.48);
   color: white;
+  border-radius: 10px;
+  padding: 6px 12px;
   cursor: pointer;
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.25) inset,
+    0 6px 14px rgba(0, 0, 0, 0.35);
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.55);
+}
+
+.menu-btn:hover {
+  color: var(--color-accent);
+  background: linear-gradient(
+    145deg,
+    rgba(14, 14, 14, 0.95) 0%,
+    rgba(95, 91, 91, 0.95) 100%
+  );
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 1px rgba(255, 212, 212, 0.35) inset,
+    0 8px 16px rgba(0, 0, 0, 0.4);
+}
+
+.menu-btn:focus-visible {
+  border-color: rgba(0, 0, 0, 0.9);
 }
 
 .menu-overlay {
   position: absolute;
-  top: 32px;           
-  right: 45px;
+  top: 80px;
+  right: 20px;
   width: 260px;
   background: rgba(120, 50, 60, 0.95);
   padding: 20px;
   border-radius: 6px;
   z-index: 1000;
-}
-
-.close-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: none;
-  border: none;
-  color: white;
-  font-size: 22px;
-  cursor: pointer;
+  animation: menu-fade-in 0.16s ease-out;
 }
 
 .menu-overlay ul {
   list-style: none;
-  margin-top: 60px;
+  margin-top: 8px;
 }
 
 .menu-overlay li {
   margin-bottom: 15px;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: menu-item-in 0.25s ease-out forwards;
 }
 
-.menu-overlay button {
+.menu-overlay li:nth-child(1) { animation-delay: 0.03s; }
+.menu-overlay li:nth-child(2) { animation-delay: 0.07s; }
+.menu-overlay li:nth-child(3) { animation-delay: 0.11s; }
+.menu-overlay li:nth-child(4) { animation-delay: 0.15s; }
+.menu-overlay li:nth-child(5) { animation-delay: 0.19s; }
+
+.menu-overlay li > button {
   width: 100%;
   padding: 12px;
   margin-bottom: 10px;
   background: #9b4b55;
   color: white;
-  border: none;
+  border: 1px solid transparent;
+  border-radius: 6px;
   font-size: 14px;
   cursor: pointer;
+}
+
+.menu-overlay li > button:hover,
+.menu-overlay li > button:focus-visible {
+  background: #b35a66;
+  border-color: #fff;
+  transform: translateY(-2px);
 }
 
 /*Contacto*/
@@ -128,6 +190,12 @@
   transform: scale(1.2);
   color: #b3091a; 
 }
+
+.contacto-iconos a:focus-visible {
+  transform: scale(1.2);
+  color: #b3091a;
+}
+
 .btn-inicio {
   display: block;
   margin-left: auto;
@@ -141,6 +209,11 @@
 
 .btn-inicio:hover {
   background: #f2f2f2;
+  transform: translateY(-2px);
+}
+
+.btn-inicio:active {
+  transform: translateY(0);
 }
 
 .error-page {
@@ -448,8 +521,11 @@ nav {
 }
 
 .btn-volver-inicio:focus-visible {
-  outline: 3px solid #fff;
-  outline-offset: 4px;
+  border-color: #fff;
+}
+
+.btn-volver-inicio:active {
+  transform: translateY(0);
 }
 
 .ubicacion-contenido {
@@ -502,6 +578,11 @@ nav {
 
 .ubicacion-link:hover {
   color: #ff4d4d;
+}
+
+.ubicacion-link:focus-visible {
+  color: #ff4d4d;
+  border-bottom-color: #fff;
 }
 
 .ubicacion-mapa {
@@ -598,6 +679,12 @@ nav {
   border-radius: 3px;
 }
 
+.login-form input:focus-visible {
+  border-color: #2b6f96;
+  box-shadow: 0 0 0 2px rgba(43, 111, 150, 0.25);
+  outline: none;
+}
+
 .login-btn {
   margin-top: 15px;
   padding: 10px;
@@ -611,6 +698,17 @@ nav {
 
 .login-btn:hover {
   background: #2b6f96;
+  transform: translateY(-2px);
+}
+
+.login-btn:active {
+  transform: translateY(0);
+}
+
+.login-btn:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+  transform: none;
 }
 
 .login-wrapper {
@@ -640,37 +738,37 @@ nav {
   margin-bottom: 8px;
 }
 
-button:hover,
-button:focus-visible {
-  color: red;
-}
-
-a:hover,
-a:focus-visible {
-  color: red;
-}
-
-.loader-container {
-  display: flex;
-  flex-direction: column;
+.loader-wrapper {
+  margin-top: 12px;
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  padding: 2rem;
+  gap: 10px;
 }
 
-.spinner {
-  width: 40px;
-  height: 40px;
-  border: 4px solid #ccc;
-  border-top: 4px solid #222;
+.loader {
+  width: 20px;
+  height: 20px;
+  border: 3px solid #c8d3dd;
+  border-top: 3px solid #2b6f96;
   border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin-bottom: 1rem;
+  animation: spin 0.9s linear infinite;
 }
 
 .loader-text {
-  font-size: 1rem;
+  font-size: 13px;
   color: #333;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 @keyframes spin {
@@ -679,13 +777,49 @@ a:focus-visible {
   }
 }
 
-.error-message {
-  background-color: #fdecea;
-  color: #611a15;
-  border: 1px solid #f5c2c7;
-  padding: 1rem;
-  border-radius: 6px;
-  margin: 1.5rem 0;
-  text-align: center;
-  font-size: 1rem;
+@keyframes menu-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes menu-item-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .menu-overlay {
+    animation: none;
+  }
+
+  .menu-overlay li {
+    animation: none;
+    opacity: 1;
+    transform: none;
+  }
+
+  .loader {
+    animation: none;
+  }
 }

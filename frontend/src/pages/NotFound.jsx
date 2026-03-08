@@ -1,22 +1,16 @@
 import { useNavigate } from "react-router-dom";
-import "../styles/main.css";
 
-function NotFound() {
+export default function NotFound() {
   const navigate = useNavigate();
 
   return (
-    <div className="error-page">
+    <div className="error-page" role="alert" aria-live="assertive">
+      <div>
+        <button type="button" onClick={() => navigate("/")}>Regresar</button>
+      </div>
       <h1>404</h1>
       <h2>Página no encontrada</h2>
-      <p>Lo sentimos, la página que buscas no existe.</p>
-      <button
-        className="btn-inicio"
-        onClick={() => navigate("/")}
-      >
-        Volver al inicio
-      </button>
+      <p>La página que buscas no existe o fue movida.</p>
     </div>
   );
 }
-
-export default NotFound;
