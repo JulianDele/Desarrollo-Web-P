@@ -1,11 +1,11 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "../styles/main.css";
 import gymLogo from "../assets/gym.png";
-
 import { loginUser } from "../services/api";
 import Loader from "../components/Loader";
 import ErrorMessage from "../components/ErrorMessage";
+import { getDefaultRouteByRole, getSession, setSession } from "../auth/session";
 
 function Login() {
   const navigate = useNavigate();
@@ -17,8 +17,16 @@ function Login() {
   });
 
   const [errors, setErrors] = useState({});
-  const [loading, setLoading] = useState(false);
-  const [loginError, setLoginError] = useState(null);
+  const [serverError, setServerError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    const { token, role } = getSession();
+
+    if (token) {
+      navigate(getDefaultRouteByRole(role), { replace: true });
+    }
+  }, [navigate]);
 
   const handleChange = (e) => {
     setFormData({
@@ -46,10 +54,13 @@ function Login() {
 
     setErrors(newErrors);
 
-    if (Object.keys(newErrors).length !== 0) return;
+    if (Object.keys(newErrors).length !== 0) {
+      setServerError("");
+      return;
+    }
 
-    setLoading(true);
-    setLoginError(null);
+    setServerError("");
+    setIsSubmitting(true);
 
     try {
       const response = await loginUser({
@@ -57,14 +68,18 @@ function Login() {
         password: formData.password,
       });
 
-      localStorage.setItem("token", response.token);
-      localStorage.setItem("role", response.role);
+      if (!response?.token) {
+        setServerError("Respuesta invalida del servidor");
+        return;
+      }
 
-      navigate("/admin/dashboard");
-    } catch (err) {
-      setLoginError(err.message);
+      const serverRole = response.role || response.user?.role || "guest";
+      setSession({ token: response.token, role: serverRole });
+      navigate(getDefaultRouteByRole(serverRole), { replace: true });
+    } catch (error) {
+      setServerError(error?.message || "No se pudo iniciar sesion");
     } finally {
-      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -77,8 +92,10 @@ function Login() {
         </div>
 
         <button
+          type="button"
           className="exit-btn"
           onClick={() => navigate("/")}
+          aria-label="Volver al inicio"
           title="Salir"
         >
           ⮐
@@ -90,58 +107,71 @@ function Login() {
 
         <div className="login-container">
           <form onSubmit={handleSubmit} className="login-form">
-            <label>NOMBRE DE USUARIO</label>
+            <label htmlFor="username">NOMBRE DE USUARIO</label>
             <input
+              id="username"
               type="text"
               name="username"
               value={formData.username}
               onChange={handleChange}
+              disabled={isSubmitting}
               className={errors.username ? "input-error" : ""}
-              aria-invalid={!!errors.username}
+              aria-invalid={Boolean(errors.username)}
+              aria-describedby={errors.username ? "username-error" : undefined}
             />
             {errors.username && (
-              <p className="error-text">{errors.username}</p>
+              <p id="username-error" className="error-text" role="alert">
+                {errors.username}
+              </p>
             )}
 
-            <label>CORREO ELECTRÓNICO</label>
+            <label htmlFor="email">CORREO ELECTRONICO</label>
             <input
+              id="email"
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
+              disabled={isSubmitting}
               className={errors.email ? "input-error" : ""}
-              aria-invalid={!!errors.email}
+              aria-invalid={Boolean(errors.email)}
+              aria-describedby={errors.email ? "email-error" : undefined}
             />
             {errors.email && (
-              <p className="error-text">{errors.email}</p>
+              <p id="email-error" className="error-text" role="alert">
+                {errors.email}
+              </p>
             )}
 
-            <label>CONTRASEÑA</label>
+            <label htmlFor="password">CONTRASEÑA</label>
             <input
+              id="password"
               type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
+              disabled={isSubmitting}
               className={errors.password ? "input-error" : ""}
-              aria-invalid={!!errors.password}
+              aria-invalid={Boolean(errors.password)}
+              aria-describedby={errors.password ? "password-error" : undefined}
             />
             {errors.password && (
-              <p className="error-text">{errors.password}</p>
+              <p id="password-error" className="error-text" role="alert">
+                {errors.password}
+              </p>
             )}
 
             <button
               type="submit"
               className="login-btn"
-              disabled={loading}
+              disabled={isSubmitting}
+              aria-busy={isSubmitting}
             >
-              INICIAR
+              {isSubmitting ? "INGRESANDO..." : "INICIAR"}
             </button>
 
-            {loading && <Loader text="Iniciando sesión..." />}
-            
-            {!loading && loginError && (
-              <ErrorMessage message={loginError} />
-            )}
+            {isSubmitting && <Loader text="Validando credenciales..." />}
+            {!isSubmitting && <ErrorMessage message={serverError} />}
           </form>
         </div>
       </div>

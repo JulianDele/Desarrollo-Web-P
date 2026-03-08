@@ -1,9 +1,47 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { clearSession } from "../../auth/session";
 
 export default function AdminSidebar({ setTitulo }) {
   const [open, setOpen] = useState(false);
   const navigate = useNavigate();
+  const quickActionsRef = useRef([]);
+  const toggleRef = useRef(null);
+  const dropdownId = "admin-sidebar-menu";
+
+  useEffect(() => {
+    if (open) {
+      quickActionsRef.current[0]?.focus();
+    }
+  }, [open]);
+
+  const handleDropdownKeyDown = (e) => {
+    const items = quickActionsRef.current.filter(Boolean);
+    const index = items.indexOf(document.activeElement);
+
+    if (e.key === "Escape") {
+      e.preventDefault();
+      setOpen(false);
+      requestAnimationFrame(() => {
+        toggleRef.current?.focus();
+      });
+      return;
+    }
+
+    if (items.length === 0) return;
+
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      const next = (index + 1 + items.length) % items.length;
+      items[next].focus();
+    }
+
+    if (e.key === "ArrowUp") {
+      e.preventDefault();
+      const prev = (index - 1 + items.length) % items.length;
+      items[prev].focus();
+    }
+  };
 
   return (
     <div className="admin-sidebar">
@@ -11,8 +49,10 @@ export default function AdminSidebar({ setTitulo }) {
         <button
           type="button"
           className="menu-toggle"
-          aria-label="Alternar menú"
+          ref={toggleRef}
+          aria-label="Alternar menu"
           aria-expanded={open}
+          aria-controls={dropdownId}
           onClick={() => setOpen(!open)}
         >
           ☰
@@ -21,9 +61,17 @@ export default function AdminSidebar({ setTitulo }) {
       </div>
 
       {open && (
-        <div className="dropdown-sidebar">
+        <div
+          className="dropdown-sidebar"
+          id={dropdownId}
+          role="menu"
+          aria-label="Acciones rapidas"
+          onKeyDown={handleDropdownKeyDown}
+        >
           <button
             type="button"
+            role="menuitem"
+            ref={(el) => (quickActionsRef.current[0] = el)}
             onClick={() => {
               navigate("/admin/servicios");
               setOpen(false);
@@ -34,6 +82,8 @@ export default function AdminSidebar({ setTitulo }) {
 
           <button
             type="button"
+            role="menuitem"
+            ref={(el) => (quickActionsRef.current[1] = el)}
             onClick={() => {
               navigate("/admin/productos");
               setOpen(false);
@@ -44,15 +94,17 @@ export default function AdminSidebar({ setTitulo }) {
 
           <button
             type="button"
+            role="menuitem"
+            ref={(el) => (quickActionsRef.current[2] = el)}
             onClick={() => {
-              navigate("/admin");
+              clearSession();
+              navigate("/login", { replace: true });
               setOpen(false);
             }}
           >
-            Cerrar Sesión
+            Cerrar Sesion
           </button>
         </div>
-        
       )}
 
       <p className="side-title">Principal</p>
@@ -90,17 +142,17 @@ export default function AdminSidebar({ setTitulo }) {
         Registros
       </button>
 
-      <p className="side-title">Gestión</p>
+      <p className="side-title">Gestion</p>
 
       <button
         type="button"
         className="side-link"
         onClick={() => {
-          setTitulo("Membresías");
+          setTitulo("Membresias");
           navigate("/admin/dashboard");
         }}
       >
-        Membresías
+        Membresias
       </button>
 
       <button
