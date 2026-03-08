@@ -1,21 +1,12 @@
-import { useNavigate } from "react-router-dom";
 import "../styles/main.css";
 import imagen1 from "../assets/imagen1.jpg";
 import imagen2 from "../assets/imagen2.jpg";
+import TopNavigation from "../components/TopNavigation";
 
 function Servicios() {
-  const navigate = useNavigate();
-
   return (
-    <div className="servicios-page">
-      <button
-        type="button"
-        className="btn-volver-inicio"
-        onClick={() => navigate("/")}
-        aria-label="Volver a la página principal"
-      >
-        Volver al inicio
-      </button>
+    <div className="servicios-page with-global-topbar">
+      <TopNavigation currentPage="servicios" />
 
       <section className="servicios-hero">
         <div className="servicios-hero-top">

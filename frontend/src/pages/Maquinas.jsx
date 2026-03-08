@@ -1,58 +1,149 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "../styles/main.css";
+import imagen1 from "../assets/imagen1.jpg";
+import imagen2 from "../assets/imagen2.jpg";
+import TopNavigation from "../components/TopNavigation";
 
 function Maquinas() {
   const navigate = useNavigate();
 
+  useEffect(() => {
+    const revealItems = document.querySelectorAll(".scroll-reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -60px 0px",
+      }
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, []);
+
   return (
-    <div className="maquinas-page">
-      <button
-        type="button"
-        className="btn-inicio"
-        onClick={() => navigate("/")}
-        aria-label="Volver a inicio"
-      >
-        Inicio
-      </button>
+    <div className="instalaciones-page with-global-topbar">
+      <TopNavigation currentPage="instalaciones" />
 
-      <div className="maquinas-content">
-        <h1 className="maquinas-title">Máquinas</h1>
+      <section className="instalaciones-hero scroll-reveal">
+        <div className="instalaciones-hero-copy">
+          <p className="instalaciones-kicker">ÁREAS DE ENTRENAMIENTO</p>
+          <h1>INSTALACIONES DE ALTO RENDIMIENTO</h1>
+          <p>
+            Espacios diseñados para entrenar con seguridad, fluidez y
+            resultados: cardio, fuerza, movilidad y recuperación en un solo
+            lugar.
+          </p>
 
-        <p className="maquinas-descripcion">
-          En esta sección encontrarás las máquinas disponibles para realizar tus
-          rutinas de ejercicio según tus objetivos. Cada equipo está diseñado
-          para ayudarte a entrenar de forma segura, eficiente y a tu propio
-          ritmo.
-        </p>
-        <div className="maquinas-galeria">
-          <div className="maquina-card">
-            <div className="maquina-box">
-              <p className="galeria-placeholder">
-                Próximamente aquí podrás explorar las máquinas disponibles.
-              </p>
-            </div>
-            <span className="maquina-titulo">ZONA PARA CARDIO</span>
-          </div>
-
-          <div className="maquina-card">
-            <div className="maquina-box">
-              <p className="galeria-placeholder">
-                Próximamente aquí podrás explorar las máquinas disponibles.
-              </p>
-            </div>
-            <span className="maquina-titulo">ZONA DE TREN SUPERIOR</span>
-          </div>
-
-          <div className="maquina-card">
-            <div className="maquina-box">
-              <p className="galeria-placeholder">
-                Próximamente aquí podrás explorar las máquinas disponibles.
-              </p>
-            </div>
-            <span className="maquina-titulo">ZONA DE TREN INFERIOR</span>
+          <div className="instalaciones-actions">
+            <button
+              type="button"
+              className="instalaciones-btn primary"
+              onClick={() => navigate("/login")}
+            >
+              INSCRÍBETE
+            </button>
+            <button
+              type="button"
+              className="instalaciones-btn ghost"
+              onClick={() => navigate("/servicios")}
+            >
+              VER SERVICIOS
+            </button>
           </div>
         </div>
-      </div>
+
+        <div className="instalaciones-hero-metrics">
+          <article className="instalaciones-metric-card">
+            <strong>4</strong>
+            <span>ZONAS PRINCIPALES</span>
+          </article>
+          <article className="instalaciones-metric-card">
+            <strong>+40</strong>
+            <span>EQUIPOS DISPONIBLES</span>
+          </article>
+          <article className="instalaciones-metric-card">
+            <strong>07:00 - 21:00</strong>
+            <span>HORARIO CONTINUO</span>
+          </article>
+        </div>
+      </section>
+
+      <section className="instalaciones-grid">
+        <article
+          className="instalacion-card scroll-reveal scroll-reveal-left"
+          style={{ "--reveal-delay": "0ms" }}
+        >
+          <img src={imagen1} alt="Zona funcional del gimnasio" />
+          <div className="instalacion-overlay">
+            <h3>ZONA FUNCIONAL</h3>
+            <p>Entrenamiento dinámico para fuerza, agilidad y coordinación.</p>
+            <button type="button" className="instalacion-chip">
+              Funcional
+            </button>
+          </div>
+        </article>
+
+        <article
+          className="instalacion-card scroll-reveal scroll-reveal-up"
+          style={{ "--reveal-delay": "110ms" }}
+        >
+          <img src={imagen2} alt="Zona de cardio y fuerza del gimnasio" />
+          <div className="instalacion-overlay">
+            <h3>ZONA CARDIO Y FUERZA</h3>
+            <p>Equipos para sesiones progresivas de resistencia y potencia.</p>
+            <button type="button" className="instalacion-chip">
+              Cardio + Fuerza
+            </button>
+          </div>
+        </article>
+
+        <article
+          className="instalacion-card scroll-reveal scroll-reveal-right"
+          style={{ "--reveal-delay": "220ms" }}
+        >
+          <div className="instalacion-gradient">
+            <i className="fas fa-water" aria-hidden="true"></i>
+            <h3>RECUPERACIÓN Y MOVILIDAD</h3>
+            <p>
+              Espacio enfocado en estiramiento, descarga muscular y
+              acondicionamiento técnico.
+            </p>
+            <button type="button" className="instalacion-chip">
+              Recuperación
+            </button>
+          </div>
+        </article>
+      </section>
+
+      <section className="instalaciones-benefits scroll-reveal scroll-reveal-up">
+        <h2>¿POR QUÉ ENTRENAR AQUÍ?</h2>
+        <div className="instalaciones-benefit-list">
+          <article className="instalaciones-benefit-item">
+            <i className="fas fa-shield-alt" aria-hidden="true"></i>
+            <h3>Seguridad Primero</h3>
+            <p>Áreas señalizadas y equipos distribuidos para entrenar sin riesgo.</p>
+          </article>
+          <article className="instalaciones-benefit-item">
+            <i className="fas fa-stopwatch" aria-hidden="true"></i>
+            <h3>Flujo Eficiente</h3>
+            <p>Diseño de zonas que reduce tiempos de espera en hora pico.</p>
+          </article>
+          <article className="instalaciones-benefit-item">
+            <i className="fas fa-bolt" aria-hidden="true"></i>
+            <h3>Resultados Reales</h3>
+            <p>Infraestructura orientada a progresión constante y medible.</p>
+          </article>
+        </div>
+      </section>
     </div>
   );
 }

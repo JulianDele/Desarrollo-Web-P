@@ -1,22 +1,35 @@
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
 import "../styles/main.css";
+import TopNavigation from "../components/TopNavigation";
 
 function Ubicacion() {
-  const navigate = useNavigate();
+  useEffect(() => {
+    const revealItems = document.querySelectorAll(".scroll-reveal");
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add("is-visible");
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      {
+        threshold: 0.2,
+        rootMargin: "0px 0px -60px 0px",
+      }
+    );
+
+    revealItems.forEach((item) => observer.observe(item));
+    return () => observer.disconnect();
+  }, []);
 
   return (
-    <div className="ubicacion-page">
-      <button
-        type="button"
-        className="btn-volver-inicio"
-        onClick={() => navigate("/")}
-        aria-label="Volver a la página principal"
-      >
-        Volver al inicio
-      </button>
+    <div className="ubicacion-page with-global-topbar">
+      <TopNavigation currentPage="ubicacion" />
 
       <section className="ubicacion-contenido">
-        <div className="ubicacion-info">
+        <div className="ubicacion-info scroll-reveal scroll-reveal-left">
           <h1>UBICACIÓN</h1>
 
           <div className="linea-roja"></div>
@@ -48,7 +61,7 @@ function Ubicacion() {
           </a>
         </div>
 
-        <div className="ubicacion-mapa">
+        <div className="ubicacion-mapa scroll-reveal scroll-reveal-right">
           <iframe
             title="Mapa de ubicación"
             src="https://www.google.com/maps?q=Calle+Cervantes+34+Madrid&output=embed"
