@@ -1,16 +1,18 @@
 import { useRef, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import "../styles/main.css";
-import gymIcon from "../assets/gym.png";
-import videoBg from "../assets/gimnacio.mp4";
-import imagen1 from "../assets/imagen1.jpg";
-import imagen2 from "../assets/imagen2.jpg";
-import TopNavigation from "../components/TopNavigation";
+import "./Home.css";
+import gymIcon from "../../assets/gym.png";
+import videoBg from "../../assets/gimnacio.mp4";
+import imagen1 from "../../assets/imagen1.jpg";
+import imagen2 from "../../assets/imagen2.jpg";
+import TopNavigation from "../../components/TopNavigation";
+import useScrollReveal from "../../hooks/useScrollReveal";
 
 function Home() {
   const navigate = useNavigate();
   const location = useLocation();
   const videoRef = useRef(null);
+  useScrollReveal();
 
   useEffect(() => {
     const video = videoRef.current;
@@ -30,28 +32,6 @@ function Home() {
     return () => {
       video.removeEventListener("timeupdate", controlarTiempo);
     };
-  }, []);
-
-  useEffect(() => {
-    const revealItems = document.querySelectorAll(".scroll-reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.2,
-        rootMargin: "0px 0px -60px 0px",
-      }
-    );
-
-    revealItems.forEach((item) => observer.observe(item));
-
-    return () => observer.disconnect();
   }, []);
 
   useEffect(() => {

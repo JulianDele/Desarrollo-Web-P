@@ -1,7 +1,7 @@
-import "../styles/main.css";
-import imagen1 from "../assets/imagen1.jpg";
-import imagen2 from "../assets/imagen2.jpg";
-import TopNavigation from "../components/TopNavigation";
+import "./Servicios.css";
+import imagen1 from "../../assets/imagen1.jpg";
+import imagen2 from "../../assets/imagen2.jpg";
+import TopNavigation from "../../components/TopNavigation";
 
 function Servicios() {
   return (

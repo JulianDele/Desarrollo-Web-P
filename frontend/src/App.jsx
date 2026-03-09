@@ -1,14 +1,14 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Maquinas from "./pages/Maquinas";
-import Servicios from "./pages/Servicios";
-import Productos from "./pages/Productos";
-import Ubicacion from "./pages/Ubicacion";
-import RoleDashboard from "./pages/RoleDashboard";
-import NotFound from "./pages/NotFound";
-import ServerError from "./pages/ServerError";
+import Home from "./pages/Home/Home";
+import Login from "./pages/Login/Login";
+import Maquinas from "./pages/Maquinas/Maquinas";
+import Servicios from "./pages/Servicios/Servicios";
+import Productos from "./pages/Productos/Productos";
+import Ubicacion from "./pages/Ubicacion/Ubicacion";
+import RoleDashboard from "./pages/RoleDashboard/RoleDashboard";
+import NotFound from "./pages/NotFound/NotFound";
+import ServerError from "./pages/ServerError/ServerError";
 
 import AdminLayout from "./admin/components/AdminLayout";
 import Dashboard from "./admin/pages/Dashboard";

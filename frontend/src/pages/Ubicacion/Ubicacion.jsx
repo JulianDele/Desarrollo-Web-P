@@ -1,28 +1,9 @@
-import { useEffect } from "react";
-import "../styles/main.css";
-import TopNavigation from "../components/TopNavigation";
+import "./Ubicacion.css";
+import TopNavigation from "../../components/TopNavigation";
+import useScrollReveal from "../../hooks/useScrollReveal";
 
 function Ubicacion() {
-  useEffect(() => {
-    const revealItems = document.querySelectorAll(".scroll-reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.2,
-        rootMargin: "0px 0px -60px 0px",
-      }
-    );
-
-    revealItems.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
-  }, []);
+  useScrollReveal();
 
   return (
     <div className="ubicacion-page with-global-topbar">

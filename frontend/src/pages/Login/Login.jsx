@@ -1,10 +1,10 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import "../styles/main.css";
-import gymLogo from "../assets/gym.png";
-import loginHeroImage from "../assets/imagen2.jpg";
-import { getDefaultRouteByRole, getSession, setSession } from "../auth/session";
-import TopNavigation from "../components/TopNavigation";
+import "./Login.css";
+import gymLogo from "../../assets/gym.png";
+import loginHeroImage from "../../assets/imagen2.jpg";
+import { getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
+import TopNavigation from "../../components/TopNavigation";
 
 function Login() {
   const navigate = useNavigate();

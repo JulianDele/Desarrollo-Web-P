@@ -1,33 +1,13 @@
-import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import "../styles/main.css";
-import imagen1 from "../assets/imagen1.jpg";
-import imagen2 from "../assets/imagen2.jpg";
-import TopNavigation from "../components/TopNavigation";
+import "./Maquinas.css";
+import imagen1 from "../../assets/imagen1.jpg";
+import imagen2 from "../../assets/imagen2.jpg";
+import TopNavigation from "../../components/TopNavigation";
+import useScrollReveal from "../../hooks/useScrollReveal";
 
 function Maquinas() {
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const revealItems = document.querySelectorAll(".scroll-reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.2,
-        rootMargin: "0px 0px -60px 0px",
-      }
-    );
-
-    revealItems.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
-  }, []);
+  useScrollReveal();
 
   return (
     <div className="instalaciones-page with-global-topbar">

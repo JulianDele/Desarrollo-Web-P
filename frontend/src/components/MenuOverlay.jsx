@@ -1,4 +1,3 @@
-import "../styles/main.css";
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef } from "react";
 import { getDefaultRouteByRole, getSession } from "../auth/session";
@@ -38,6 +37,16 @@ function MenuOverlay({ cerrarMenu, triggerRef, menuId = "main-menu-overlay" }) {
     }
 
     if (items.length === 0) return;
+
+    if (e.key === "Tab") {
+      e.preventDefault();
+      const current = index >= 0 ? index : 0;
+      const next = e.shiftKey
+        ? (current - 1 + items.length) % items.length
+        : (current + 1) % items.length;
+      items[next].focus();
+      return;
+    }
 
     if (e.key === "ArrowDown") {
       e.preventDefault();

@@ -1,6 +1,6 @@
-import { useEffect } from "react";
-import "../styles/main.css";
-import TopNavigation from "../components/TopNavigation";
+import "./Productos.css";
+import TopNavigation from "../../components/TopNavigation";
+import useScrollReveal from "../../hooks/useScrollReveal";
 
 const PRODUCTOS_CATALOGO = [
   {
@@ -56,26 +56,7 @@ const BEBIDAS_CATALOGO = [
 ];
 
 function Productos() {
-  useEffect(() => {
-    const revealItems = document.querySelectorAll(".scroll-reveal");
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add("is-visible");
-            observer.unobserve(entry.target);
-          }
-        });
-      },
-      {
-        threshold: 0.2,
-        rootMargin: "0px 0px -60px 0px",
-      }
-    );
-
-    revealItems.forEach((item) => observer.observe(item));
-    return () => observer.disconnect();
-  }, []);
+  useScrollReveal();
 
   const renderCatalogo = (catalogo) => (
     <div className="productos-catalogo-grid">

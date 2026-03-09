@@ -1,9 +1,9 @@
-import { render, screen } from "@testing-library/react";
+﻿import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import "@testing-library/jest-dom";
 import { describe, expect, it, vi } from "vitest";
 import { MemoryRouter } from "react-router-dom";
-import MenuOverlay from "./MenuOverlay";
+import MenuOverlay from "../components/MenuOverlay";
 
 describe("MenuOverlay keyboard behavior", () => {
   it("focuses first action, supports arrow keys, and closes with Escape", async () => {

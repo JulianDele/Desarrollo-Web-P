@@ -1,6 +1,6 @@
 import { Navigate, useNavigate } from "react-router-dom";
-import { clearSession, getSession } from "../auth/session";
-import "../styles/main.css";
+import { clearSession, getSession } from "../../auth/session";
+import "./RoleDashboard.css";
 
 export default function RoleDashboard() {
   const navigate = useNavigate();
@@ -30,31 +30,31 @@ export default function RoleDashboard() {
   };
 
   return (
-    <main className="servicios-page">
-      <section className="servicios-hero">
-        <div className="hero-text">
+    <main className="role-dashboard-page with-global-topbar">
+      <section className="role-dashboard-hero">
+        <div className="role-dashboard-hero-text">
           <h1>{title}</h1>
           <p>{description}</p>
         </div>
       </section>
 
-      <section className="flujo">
+      <section className="role-dashboard-actions">
         <h2>Acciones Disponibles</h2>
-        <div className="flujo-pasos">
-          <button type="button" className="btn-volver-inicio" onClick={() => navigate("/servicios")}>
+        <div className="role-dashboard-actions-grid">
+          <button type="button" className="role-dashboard-action-btn" onClick={() => navigate("/servicios")}>
             Ver servicios
           </button>
-          <button type="button" className="btn-volver-inicio" onClick={() => navigate("/productos")}>
+          <button type="button" className="role-dashboard-action-btn" onClick={() => navigate("/productos")}>
             Ver productos
           </button>
-          <button type="button" className="btn-volver-inicio" onClick={() => navigate("/ubicacion")}>
+          <button type="button" className="role-dashboard-action-btn" onClick={() => navigate("/ubicacion")}>
             Ver ubicación
           </button>
         </div>
       </section>
 
-      <section className="roles">
-        <button type="button" className="btn-volver-inicio" onClick={handleLogout}>
+      <section className="role-dashboard-footer">
+        <button type="button" className="role-dashboard-action-btn role-dashboard-logout-btn" onClick={handleLogout}>
           Cerrar sesión
         </button>
       </section>

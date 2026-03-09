@@ -1,5 +1,3 @@
-import "../styles/main.css";
-
 function Navbar({ onToggleMenu, menuAbierto, menuId, menuButtonRef }) {
   return (
     <nav className="navbar">

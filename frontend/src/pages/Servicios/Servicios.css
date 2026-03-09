@@ -1,0 +1,138 @@
+.servicios-page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, #000 0%, #000 40%, #7a0000 100%);
+  color: #fff;
+  overflow-y: auto;
+}
+
+.servicios-hero-top,
+.servicios-hero-bottom {
+  position: relative;
+  height: 60vh;
+}
+
+.servicios-hero-top img,
+.servicios-hero-bottom img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: brightness(0.55);
+}
+
+.hero-text {
+  position: absolute;
+  top: 50%;
+  left: 60px;
+  transform: translateY(-50%);
+  max-width: 600px;
+}
+
+.hero-text.center {
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.hero-text h1,
+.hero-text h2 {
+  font-family: "Anton", sans-serif;
+  font-size: 48px;
+}
+
+.gestionamos,
+.flujo,
+.roles {
+  padding: 100px 60px;
+  text-align: center;
+}
+
+.gestion-cards,
+.roles-cards,
+.flujo-pasos {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+}
+
+.gestion-card,
+.rol-card {
+  width: 300px;
+  background: #0e0e0e;
+  padding: 30px;
+  border-radius: 10px;
+}
+
+.img-placeholder,
+.rol-img {
+  height: 170px;
+  background: #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ff4d4d;
+  font-weight: bold;
+}
+
+.flujo-item {
+  background: #0e0e0e;
+  padding: 20px 30px;
+  border-radius: 50px;
+}
+
+.flujo-pasos span {
+  color: #ff4d4d;
+  font-size: 28px;
+}
+
+.servicios-footer {
+  background: #a34a4a;
+  padding: 40px 60px;
+  display: flex;
+  justify-content: space-between;
+  color: #000;
+}
+
+.servicios-footer h4 {
+  margin-bottom: 8px;
+}
+
+@media (max-width: 1000px) {
+  .gestion-cards,
+  .roles-cards,
+  .flujo-pasos {
+    flex-wrap: wrap;
+  }
+
+  .servicios-footer {
+    flex-wrap: wrap;
+    gap: 20px;
+  }
+}
+
+@media (max-width: 680px) {
+  .hero-text {
+    left: 20px;
+    right: 20px;
+    max-width: none;
+  }
+
+  .hero-text h1,
+  .hero-text h2 {
+    font-size: 36px;
+  }
+
+  .gestionamos,
+  .flujo,
+  .roles {
+    padding: 70px 20px;
+  }
+
+  .gestion-card,
+  .rol-card {
+    width: min(100%, 360px);
+  }
+
+  .servicios-footer {
+    padding: 30px 20px;
+  }
+}

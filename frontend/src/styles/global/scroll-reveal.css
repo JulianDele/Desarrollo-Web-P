@@ -1,0 +1,31 @@
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(22px);
+  transition:
+    opacity 0.55s ease,
+    transform 0.55s ease;
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.scroll-reveal-left {
+  transform: translateX(-26px);
+}
+
+.scroll-reveal-right {
+  transform: translateX(26px);
+}
+
+.scroll-reveal-up {
+  transform: translateY(30px);
+}
+
+.scroll-reveal-left.is-visible,
+.scroll-reveal-right.is-visible,
+.scroll-reveal-up.is-visible {
+  transform: translate(0, 0);
+}

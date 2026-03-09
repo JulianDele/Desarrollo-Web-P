@@ -1,0 +1,6 @@
+@import "./global/base.css";
+@import "./global/layout.css";
+@import "./global/navigation.css";
+@import "./global/menu-overlay.css";
+@import "./global/scroll-reveal.css";
+@import "./global/animations.css";
