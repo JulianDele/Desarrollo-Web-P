@@ -1,18 +1,21 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 
-import Home from "./pages/Home";
-import Login from "./pages/Login";
-import Maquinas from "./pages/Maquinas";
-import Servicios from "./pages/Servicios";
-import Productos from "./pages/Productos";
-import Ubicacion from "./pages/Ubicacion";
-import NotFound from "./pages/NotFound";
-import ServerError from "./pages/ServerError";
+import Home from "./pages/Home/Home";
+import Login from "./pages/Login/Login";
+import Maquinas from "./pages/Maquinas/Maquinas";
+import Servicios from "./pages/Servicios/Servicios";
+import Productos from "./pages/Productos/Productos";
+import Ubicacion from "./pages/Ubicacion/Ubicacion";
+import RoleDashboard from "./pages/RoleDashboard/RoleDashboard";
+import NotFound from "./pages/NotFound/NotFound";
+import ServerError from "./pages/ServerError/ServerError";
 
 import AdminLayout from "./admin/components/AdminLayout";
 import Dashboard from "./admin/pages/Dashboard";
 import GestionServicios from "./admin/pages/GestionServicios";
 import GestionProductos from "./admin/pages/GestionProductos";
+import ProtectedRoute from "./routes/ProtectedRoute";
+import RoleRoute from "./routes/RoleRoute";
 
 function App() {
   return (
@@ -25,7 +28,25 @@ function App() {
         <Route path="/productos" element={<Productos />} />
         <Route path="/ubicacion" element={<Ubicacion />} />
 
-        <Route path="/admin" element={<AdminLayout />}>
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <RoleDashboard />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin"
+          element={
+            <ProtectedRoute>
+              <RoleRoute allowedRoles={["admin"]}>
+                <AdminLayout />
+              </RoleRoute>
+            </ProtectedRoute>
+          }
+        >
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="servicios" element={<GestionServicios />} />
           <Route path="productos" element={<GestionProductos />} />

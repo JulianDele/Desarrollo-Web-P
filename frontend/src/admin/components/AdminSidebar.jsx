@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
+import { clearSession } from "../../auth/session";
 
 export default function AdminSidebar({ setTitulo }) {
   const [open, setOpen] = useState(false);
@@ -96,14 +97,14 @@ export default function AdminSidebar({ setTitulo }) {
             role="menuitem"
             ref={(el) => (quickActionsRef.current[2] = el)}
             onClick={() => {
-              navigate("/admin");
+              clearSession();
+              navigate("/login", { replace: true });
               setOpen(false);
             }}
           >
             Cerrar Sesión
           </button>
         </div>
-        
       )}
 
       <p className="side-title">Principal</p>
@@ -147,7 +148,7 @@ export default function AdminSidebar({ setTitulo }) {
         type="button"
         className="side-link"
         onClick={() => {
-          setTitulo("Membresías");
+          setTitulo("Membresias");
           navigate("/admin/dashboard");
         }}
       >
