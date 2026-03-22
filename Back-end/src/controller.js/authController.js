@@ -5,7 +5,7 @@ const crypto = require('crypto');
 
 const users = [];
 
-// Registro
+// registro
 exports.register = async (req, res) => {
     try {
         const { email, password, role } = req.body;
