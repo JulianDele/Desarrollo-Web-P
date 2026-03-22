@@ -7,10 +7,10 @@ services:
     container_name: backend_app
     ports:
       - "3000:3000"
-    environment:
-      - NODE_ENV=development
-      - JWT_SECRET=devsecret
-      - MONGO_URI=mongodb://mongo:27017/gymdb
+
+    env_file:
+      - .env
+
     depends_on:
       - mongo
 
