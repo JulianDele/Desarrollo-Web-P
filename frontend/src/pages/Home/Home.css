@@ -1,0 +1,319 @@
+.home {
+  width: 100%;
+  height: 100vh;
+  position: relative;
+  color: rgb(255, 255, 255);
+  overflow: hidden;
+}
+
+.home-page {
+  width: 100%;
+  background: linear-gradient(to bottom, #000 0%, #120000 55%, #5c0000 100%);
+}
+
+.video-bg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  z-index: 1;
+  pointer-events: none;
+}
+
+.home-content {
+  position: absolute;
+  top: 230px;
+  left: 30px;
+  max-width: 980px;
+  z-index: 3;
+}
+
+.home-content h1 {
+  font-family: "Anton", sans-serif;
+  font-size: 80px;
+  font-weight: 500;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+}
+
+.home-content p {
+  font-family: "Anton", sans-serif;
+  font-style: italic;
+  max-width: 900px;
+  font-size: clamp(2rem, 4.4vw, 4rem);
+  line-height: 1.3;
+  margin-left: 20px;
+  margin-bottom: 24px;
+}
+
+.titulo-gym {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  font-family: "Anton", sans-serif;
+}
+
+.titulo-gym img {
+  height: 2em;
+  width: auto;
+}
+
+.home-hero-actions {
+  display: flex;
+  gap: 14px;
+  margin-left: 20px;
+}
+
+.home-cta-btn {
+  display: inline-block;
+  min-width: 190px;
+  padding: 14px 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  font-family: "Anton", sans-serif;
+  letter-spacing: 1px;
+  font-size: 1.15rem;
+  color: #fff;
+  background: linear-gradient(120deg, #7a0000 0%, #b30000 70%, #ff4d4d 100%);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  cursor: pointer;
+}
+
+.home-cta-btn:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.5);
+}
+
+.home-section {
+  position: relative;
+  padding: 90px 60px;
+  color: #fff;
+}
+
+.home-section-header {
+  margin: 0 auto 36px;
+  max-width: 1180px;
+  text-align: center;
+}
+
+.home-section-header span {
+  display: inline-block;
+  color: #ff6f6f;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+
+.home-section-header h2 {
+  margin: 0;
+  font-family: "Anton", sans-serif;
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  letter-spacing: 1px;
+}
+
+.home-info-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.home-info-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 24px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: linear-gradient(145deg, rgba(0, 0, 0, 0.86) 0%, rgba(84, 0, 0, 0.42) 100%);
+  border-radius: 12px;
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.3);
+}
+
+.home-info-card i {
+  color: var(--color-accent);
+  font-size: 2rem;
+}
+
+.home-info-card h3 {
+  margin: 2px 0;
+  font-family: "Anton", sans-serif;
+  letter-spacing: 1px;
+  font-size: 1.35rem;
+}
+
+.home-info-card p {
+  margin: 0;
+  line-height: 1.45;
+  color: #eadada;
+}
+
+.home-installations-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.home-install-card {
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: #0e0e0e;
+  min-height: 360px;
+  box-shadow: 0 14px 24px rgba(0, 0, 0, 0.3);
+  position: relative;
+}
+
+.home-install-card img {
+  width: 100%;
+  height: 100%;
+  min-height: 360px;
+  object-fit: cover;
+  filter: brightness(0.58);
+  transition: transform 0.4s ease;
+}
+
+.home-install-card:hover img {
+  transform: scale(1.07);
+}
+
+.home-install-overlay {
+  position: absolute;
+  inset: 0;
+  padding: 22px;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.85) 0%, rgba(0, 0, 0, 0.15) 60%);
+}
+
+.home-install-overlay h3,
+.home-install-gradient h3 {
+  margin: 0 0 6px;
+  font-family: "Anton", sans-serif;
+  font-size: 1.45rem;
+  letter-spacing: 1px;
+}
+
+.home-install-overlay p,
+.home-install-gradient p {
+  margin: 0;
+  color: #eadada;
+  line-height: 1.4;
+}
+
+.home-install-gradient {
+  height: 100%;
+  min-height: 360px;
+  display: flex;
+  flex-direction: column;
+  justify-content: end;
+  gap: 8px;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 80% 18%, rgba(255, 77, 77, 0.23), transparent 45%),
+    linear-gradient(145deg, rgba(0, 0, 0, 0.88) 0%, rgba(90, 0, 0, 0.62) 100%);
+}
+
+.home-install-gradient i {
+  color: #ff7a7a;
+  font-size: 2rem;
+  margin-bottom: 4px;
+}
+
+.contacto-fixed {
+  position: fixed;
+  bottom: 10px;
+  right: 10px;
+  text-align: right;
+  color: white;
+  z-index: 10;
+}
+
+.contacto-fixed p {
+  font-family: "Anton", sans-serif;
+  font-style: italic;
+  font-size: 40px;
+  margin-bottom: 10px;
+  margin-right: 40px;
+}
+
+.contacto-iconos a {
+  font-size: 70px;
+  color: white;
+  text-decoration: none;
+  transition: transform 0.2s ease, color 0.2s ease;
+}
+
+.contacto-iconos a:hover,
+.contacto-iconos a:focus-visible {
+  transform: scale(1.2);
+  color: #b3091a;
+}
+
+@media (max-width: 1000px) {
+  .home-content {
+    top: 190px;
+    left: 24px;
+    right: 24px;
+  }
+
+  .home-content h1 {
+    font-size: clamp(2.7rem, 8vw, 5rem);
+  }
+
+  .home-content p {
+    margin-left: 0;
+    font-size: clamp(1.6rem, 4.8vw, 2.5rem);
+  }
+
+  .home-hero-actions {
+    margin-left: 0;
+    flex-wrap: wrap;
+  }
+
+  .home-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-installations-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .contacto-fixed p {
+    font-size: 26px;
+    margin-right: 8px;
+  }
+
+  .contacto-iconos a {
+    font-size: 48px;
+  }
+}
+
+@media (max-width: 680px) {
+  .home-section {
+    padding: 70px 22px;
+  }
+
+  .home-installations-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .home-cta-btn {
+    min-width: 160px;
+    font-size: 1rem;
+    padding: 12px 14px;
+  }
+}

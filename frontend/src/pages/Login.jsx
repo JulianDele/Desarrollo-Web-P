@@ -1,13 +1,14 @@
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import "../styles/main.css";
 import gymLogo from "../assets/gym.png";
 
 function Login() {
   const navigate = useNavigate();
 
+  const errorRef = useRef(null);
+
   const [formData, setFormData] = useState({
-    username: "",
     email: "",
     password: "",
   });
@@ -15,6 +16,12 @@ function Login() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (serverError && errorRef.current) {
+      errorRef.current.focus();
+    }
+  }, [serverError]);
 
   const handleChange = (e) => {
     setFormData({
@@ -27,10 +34,6 @@ function Login() {
     e.preventDefault();
 
     let newErrors = {};
-
-    if (!formData.username.trim()) {
-      newErrors.username = "Este campo es obligatorio";
-    }
 
     if (!formData.email.trim()) {
       newErrors.email = "Este campo es obligatorio";
@@ -56,18 +59,23 @@ function Login() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify(formData),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (!response.ok) {
-        setServerError(data.message || "No se pudo iniciar sesión");
+        if (response.status === 401) {
+          setServerError("Credenciales inválidas");
+          return;
+        }
+
+        setServerError("No se pudo iniciar sesión");
         return;
       }
 
-      localStorage.setItem("token", data.token);
-      localStorage.setItem("role", data.role || "ADMIN");
+      // el backend maneja la sesión con cookies HttpOnly
       navigate("/admin/dashboard");
     } catch {
       setServerError("No se pudo conectar con el servidor");
@@ -96,7 +104,7 @@ function Login() {
       </header>
 
       <div className="login-wrapper">
-        <h2 className="login-title">INGRESA TU USUARIO</h2>
+        <h2 className="login-title">INICIAR SESIÓN</h2>
 
         <div className="login-container">
           <form
@@ -104,26 +112,7 @@ function Login() {
             className="login-form"
             aria-describedby={serverError ? "login-server-error" : undefined}
           >
-            
-            <label htmlFor="username">NOMBRE DE USUARIO</label>
-            <input
-              id="username"
-              type="text"
-              name="username"
-              value={formData.username}
-              onChange={handleChange}
-              disabled={isSubmitting}
-              className={errors.username ? "input-error" : ""}
-              aria-invalid={Boolean(errors.username)}
-              aria-describedby={errors.username ? "username-error" : undefined}
-            />
-            {errors.username && (
-              <p id="username-error" className="error-text" role="alert">
-                {errors.username}
-              </p>
-            )}
-
-            <label htmlFor="email">CORREO ELECTRONICO</label>
+            <label htmlFor="email">CORREO ELECTRÓNICO</label>
             <input
               id="email"
               type="email"
@@ -135,6 +124,7 @@ function Login() {
               aria-invalid={Boolean(errors.email)}
               aria-describedby={errors.email ? "email-error" : undefined}
             />
+
             {errors.email && (
               <p id="email-error" className="error-text" role="alert">
                 {errors.email}
@@ -153,6 +143,7 @@ function Login() {
               aria-invalid={Boolean(errors.password)}
               aria-describedby={errors.password ? "password-error" : undefined}
             />
+
             {errors.password && (
               <p id="password-error" className="error-text" role="alert">
                 {errors.password}
@@ -181,11 +172,18 @@ function Login() {
               </div>
             )}
 
-            {serverError && (
-              <p id="login-server-error" className="error-text" role="alert">
-                {serverError}
-              </p>
-            )}
+            <div aria-live="assertive">
+              {serverError && (
+                <p
+                  id="login-server-error"
+                  className="error-text"
+                  tabIndex="-1"
+                  ref={errorRef}
+                >
+                  {serverError}
+                </p>
+              )}
+            </div>
           </form>
         </div>
       </div>
