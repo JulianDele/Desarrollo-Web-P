@@ -109,7 +109,7 @@ exports.sessions = async (req, res) => {
     }
 };
 
-// refresh
+// refresh token
 exports.refresh = async (req, res) => {
     try {
         const { refreshToken } = req.body;
