@@ -1,7 +1,10 @@
 const bcrypt = require('bcryptjs');
-const { generateToken } = require('../utils/token');
+const { generateToken, generateRefreshToken, verifyToken } = require('../utils/token');
+const Session = require('../models/Session');
+const crypto = require('crypto');
 
 const users = [];
+
 // Registro
 exports.register = async (req, res) => {
     try {
@@ -11,7 +14,7 @@ exports.register = async (req, res) => {
         }
         const existingUser = users.find(u => u.email === email);
         if (existingUser) {
-            return res.status(400).json({ message: "Error al registrar usuario" });
+            return res.status(400).json({ message: "Usuario ya existe" });
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = {
@@ -22,11 +25,12 @@ exports.register = async (req, res) => {
         };
         users.push(newUser);
         res.json({ message: "Usuario registrado correctamente" });
-    } catch (error) {
+    } catch {
         res.status(500).json({ message: "Error del servidor" });
     }
 };
-// Login
+
+// multisesión 
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -41,22 +45,81 @@ exports.login = async (req, res) => {
         if (!validPassword) {
             return res.status(401).json({ message: "Credenciales inválidas" });
         }
-        const token = generateToken(user);
+        const accessToken = generateToken(user);
+        const refreshToken = generateRefreshToken(user);
+        const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+        const session = await Session.create({
+            userId: user.id,
+            tokenHash: accessToken,
+            device: req.headers['user-agent'],
+            ip: req.ip,
+            expiresAt
+        });
         res.json({
             message: "Login exitoso",
-            token
+            user: { id: user.id, email: user.email },
+            role: user.role,
+            sessionId: session._id,
+            expiresAt,
+            accessToken,
+            refreshToken
         });
-    } catch (error) {
+    } catch {
         res.status(500).json({ message: "Error del servidor" });
     }
 };
-// Logout
-exports.logout = (req, res) => {
-    res.json({ message: "Logout exitoso" });
+
+// solo sesión actual
+exports.logout = async (req, res) => {
+    try {
+        await Session.findByIdAndUpdate(req.session._id, { isActive: false });
+        res.json({ message: "Logout exitoso" });
+    } catch {
+        res.status(500).json({ message: "Error del servidor" });
+    }
 };
-// Session
+
+// all logout
+exports.logoutAll = async (req, res) => {
+    try {
+        await Session.updateMany(
+            { userId: req.user.id },
+            { isActive: false }
+        );
+        res.json({ message: "Todas las sesiones cerradas" });
+    } catch {
+        res.status(500).json({ message: "Error del servidor" });
+    }
+};
+
 exports.session = (req, res) => {
-    res.json({
-        user: req.user
-    });
+    res.json({ user: req.user });
+};
+
+// lista
+exports.sessions = async (req, res) => {
+    try {
+        const sessions = await Session.find({
+            userId: req.user.id,
+            isActive: true
+        });
+        res.json(sessions);
+    } catch {
+        res.status(500).json({ message: "Error del servidor" });
+    }
+};
+
+// refresh
+exports.refresh = async (req, res) => {
+    try {
+        const { refreshToken } = req.body;
+        if (!refreshToken) {
+            return res.status(400).json({ message: "Refresh requerido" });
+        }
+        const decoded = verifyToken(refreshToken);
+        const newAccessToken = generateToken(decoded);
+        res.json({ accessToken: newAccessToken });
+    } catch {
+        res.status(401).json({ message: "Refresh inválido" });
+    }
 };
