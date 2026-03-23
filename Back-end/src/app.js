@@ -51,4 +51,9 @@ app.get('/api/bad-request', (req, res) => {
 app.get('/api/not-found', (req, res) => {
     res.status(404).json({ message: 'recurso no encontrado'});
 });
+app.get('/api/health', (req, res) => {
+    res.json({ status: 'ok' });
+});
+
 module.exports = app;
+
