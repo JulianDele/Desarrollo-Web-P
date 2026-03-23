@@ -2,9 +2,11 @@ const express = require('express');
 const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
+const logger = require('./middleware/logger');
 
 const app = express();
 app.use(express.json());
+app.use(logger);
 app.use(cors({
     origin: "http://localhost:3000",
     credentials: true
