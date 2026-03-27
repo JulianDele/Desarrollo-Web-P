@@ -5,12 +5,33 @@ const authRoutes = require('./routes/authRoutes');
 const logger = require('./middleware/logger');
 
 const app = express();
+
+//  HTTPS obligatorio en producción
+app.use((req, res, next) => {
+    if (process.env.NODE_ENV === 'production' && req.headers['x-forwarded-proto'] !== 'https') {
+        return res.redirect(301, 'https://' + req.headers.host + req.url);
+    }
+    next();
+});
+
 app.use(express.json());
 app.use(logger);
 app.use(cors({
-    origin: "http://localhost:3000",
+        origin: process.env.NODE_ENV === 'production' 
+        ? process.env.FRONTEND_URL  // en prod usa variable de entorno
+        : "http://localhost:3000",
     credentials: true
 }));
+
+//  Health check para CI smoke test y monitoreo
+app.get('/api/health', (req, res) => {
+    res.status(200).json({
+        status: 'ok',
+        environment: process.env.NODE_ENV,
+        timestamp: new Date().toISOString()
+    });
+});
+
 // Rutas de autenticación
 app.use('/api', authRoutes);
 //http 200
