@@ -74,4 +74,19 @@ app.get('/api/bad-request', (req, res) => {
 app.get('/api/not-found', (req, res) => {
     res.status(404).json({ message: 'recurso no encontrado'});
 });
+
+// Monitoreo de eventos críticos de auth
+app.use((err, req, res, next) => {
+    const timestamp = new Date().toISOString();
+    console.error(JSON.stringify({
+        timestamp,
+        type: 'error',
+        method: req.method,
+        url: req.originalUrl,
+        status: err.status || 500,
+        message: err.message
+    }));
+    res.status(err.status || 500).json({ message: err.message || 'Error interno' });
+});
+
 module.exports = app;

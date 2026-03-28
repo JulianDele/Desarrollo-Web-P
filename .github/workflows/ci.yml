@@ -58,4 +58,7 @@ jobs:
           docker run -d -p 3000:3000 --name test_container mi_app
           sleep 10
           curl -f http://localhost:3000/api/health || exit 1
+          curl -f -X POST http://localhost:3000/api/auth/forgot-password \
+            -H "Content-Type: application/json" \
+            -d '{"email":"test@test.com"}' || echo "ruta pendiente de backend"
           docker rm -f test_container
