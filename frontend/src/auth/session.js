@@ -33,12 +33,8 @@ export function getSession() {
     role: normalizeRole(
       localStorage.getItem(ROLE_KEY)
     ),
-    sessionId: localStorage.getItem(
-      SESSION_ID_KEY
-    ),
-    expiresAt: localStorage.getItem(
-      EXPIRES_KEY
-    ),
+    sessionId: localStorage.getItem(SESSION_ID_KEY),
+    expiresAt: localStorage.getItem(EXPIRES_KEY),
   };
 }
 
@@ -49,39 +45,25 @@ export function setSession({
   sessionId,
   expiresAt,
 }) {
-
   if (accessToken) {
-    localStorage.setItem(
-      TOKEN_KEY,
-      accessToken
-    );
+    localStorage.setItem(TOKEN_KEY, accessToken);
   }
 
   if (sessionId) {
-    localStorage.setItem(
-      SESSION_ID_KEY,
-      sessionId
-    );
+    localStorage.setItem(SESSION_ID_KEY, sessionId);
   }
 
   if (role) {
-    localStorage.setItem(
-      ROLE_KEY,
-      normalizeRole(role)
-    );
+    localStorage.setItem(ROLE_KEY, normalizeRole(role));
   }
 
   if (expiresAt) {
-    localStorage.setItem(
-      EXPIRES_KEY,
-      expiresAt
-    );
+    localStorage.setItem(EXPIRES_KEY, expiresAt);
   }
 }
 
 // Limpiar sesión
 export function clearSession() {
-
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(ROLE_KEY);
   localStorage.removeItem(SESSION_ID_KEY);
@@ -92,18 +74,12 @@ export function clearSession() {
 
 // Verificar si existe sesión
 export function hasSession() {
-  return Boolean(
-    localStorage.getItem(TOKEN_KEY)
-  );
+  return Boolean(localStorage.getItem(TOKEN_KEY));
 }
 
 // Rutas por rol
-export function getDefaultRouteByRole(
-  role
-) {
-
-  const normalizedRole =
-    normalizeRole(role);
+export function getDefaultRouteByRole(role) {
+  const normalizedRole = normalizeRole(role);
 
   if (normalizedRole === "admin") {
     return "/admin/dashboard";
@@ -119,63 +95,38 @@ export function getDefaultRouteByRole(
   return "/";
 }
 
-
 export function notifyLogout() {
-  localStorage.setItem(
-    "logout-event",
-    Date.now()
-  );
+  localStorage.setItem("logout-event", Date.now());
 }
 
 export function listenLogout(callback) {
-
   const handler = (event) => {
     if (event.key === "logout-event") {
       callback();
     }
   };
 
-  window.addEventListener(
-    "storage",
-    handler
-  );
+  window.addEventListener("storage", handler);
 
   return () => {
-    window.removeEventListener(
-      "storage",
-      handler
-    );
+    window.removeEventListener("storage", handler);
   };
 }
 
-
 export function getSessionExpiry() {
-  return localStorage.getItem(
-    EXPIRES_KEY
-  );
+  return localStorage.getItem(EXPIRES_KEY);
 }
 
 export function isSessionExpired() {
+  const expiresAt = getSessionExpiry();
 
-  const expiresAt =
-    getSessionExpiry();
+  if (!expiresAt) return true;
 
-  if (!expiresAt) return false;
-
-  return (
-    new Date().getTime() >
-    new Date(expiresAt).getTime()
-  );
+  return new Date().getTime() > new Date(expiresAt).getTime();
 }
 
-
-export async function fetchWithAuth(
-  url,
-  options = {}
-) {
-
-  let token =
-    localStorage.getItem(TOKEN_KEY);
+export async function fetchWithAuth(url, options = {}) {
+  let token = localStorage.getItem(TOKEN_KEY);
 
   let response = await fetch(url, {
     ...options,
@@ -186,29 +137,18 @@ export async function fetchWithAuth(
     credentials: "include",
   });
 
-  // Si sesión expiró  intentar refresh
+  // Si sesión expiró, intentar refresh
   if (response.status === 401) {
-
-    const refreshRes = await fetch(
-      "/api/refresh",
-      {
-        method: "POST",
-        credentials: "include",
-      }
-    );
+    const refreshRes = await fetch("/api/refresh", {
+      method: "POST",
+      credentials: "include",
+    });
 
     if (refreshRes.ok) {
-
-      const data =
-        await refreshRes.json();
+      const data = await refreshRes.json();
 
       if (data.accessToken) {
-
-        localStorage.setItem(
-          TOKEN_KEY,
-          data.accessToken
-        );
-
+        localStorage.setItem(TOKEN_KEY, data.accessToken);
         token = data.accessToken;
       }
 
@@ -221,13 +161,9 @@ export async function fetchWithAuth(
         },
         credentials: "include",
       });
-
     } else {
-
       clearSession();
-
-      window.location.href =
-        "/login";
+      window.location.href = "/login";
     }
   }
 

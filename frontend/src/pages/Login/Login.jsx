@@ -109,7 +109,6 @@ function Login() {
         data.user?.role ||
         "guest";
 
-      // Guardar sesión completa
       setSession({
         accessToken: data.accessToken,
         role: serverRole,
@@ -444,6 +443,17 @@ function Login() {
                   </p>
                 )}
               </form>
+
+
+              <div className="login-forgot-wrap">
+                <button
+                  type="button"
+                  className="login-switch-btn"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
 
               <div className="login-register-cta">
                 <p>¿No tienes cuenta?</p>
