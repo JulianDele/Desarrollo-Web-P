@@ -148,3 +148,28 @@ exports.forgotPassword = async (req, res) => {
         return res.json({ message: "Si el proceso es válido, se completará" });
     }
 };
+
+// Validación de reset token
+exports.validateResetToken = async (req, res) => {
+    try {
+        const { token } = req.body;
+        const message = "Solicitud procesada";
+        if (!token) {
+            return res.json({ valid: false, message });
+        }
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+        const user = users.find(u =>
+            u.resetToken === hashedToken &&
+            u.resetTokenExpires > Date.now()
+        );
+        if (!user) {
+            return res.json({ valid: false, message });
+        }
+        return res.json({ valid: true, message });
+    } catch (error) {
+        return res.json({ valid: false, message: "Solicitud procesada" });
+    }
+};
