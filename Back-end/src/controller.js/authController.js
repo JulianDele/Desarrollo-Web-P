@@ -173,3 +173,35 @@ exports.validateResetToken = async (req, res) => {
         return res.json({ valid: false, message: "Solicitud procesada" });
     }
 };
+
+// Reset password
+exports.resetPassword = async (req, res) => {
+    try {
+        const { token, newPassword } = req.body;
+        const message = "Si el proceso es válido, la contraseña fue actualizada";
+        if (!token || !newPassword) {
+            return res.json({ message });
+        }
+        const hashedToken = crypto
+            .createHash("sha256")
+            .update(token)
+            .digest("hex");
+        const user = users.find(u =>
+            u.resetToken === hashedToken &&
+            u.resetTokenExpires > Date.now()
+        );
+        if (user) {
+            // Hash de nueva contraseña (bcrypt)
+            user.password = await bcrypt.hash(newPassword, 10);
+            user.resetToken = null;
+            user.resetTokenExpires = null;
+            await Session.updateMany(
+                { userId: user.id },
+                { isActive: false }
+            );
+        }
+        return res.json({ message });
+    } catch (error) {
+        return res.json({ message: "Si el proceso es válido, se completará" });
+    }
+};
