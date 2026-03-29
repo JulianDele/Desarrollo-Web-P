@@ -7,7 +7,6 @@ const requireAuth = require('../middleware/requireAuth');
 const requireRole = require('../middleware/requireRole');
 const rateLimitPassword = require('../middleware/rateLimitPassword');
 
-
 router.post('/register', register);
 router.post('/login', rateLimitLogin, login);
 router.post('/logout', requireAuth, logout);
