@@ -132,3 +132,31 @@ describe('Auth API Tests', () => {
   });
 
 });
+
+// Forgot password 
+test('Forgot password responde neutral', async () => {
+  const res = await request(app)
+    .post('/api/forgot-password')
+    .send({ email: user.email });
+
+  expect(res.statusCode).toBe(200);
+  expect(res.body.message).toBeDefined();
+});
+
+// Validate token inválido
+test('Validate token inválido', async () => {
+  const res = await request(app)
+    .post('/api/reset-password/validate')
+    .send({ token: "fake_token" });
+
+  expect(res.body.valid).toBe(false);
+});
+
+// Reset password sin token
+test('Reset password sin token', async () => {
+  const res = await request(app)
+    .post('/api/reset-password')
+    .send({ newPassword: "12345678" });
+
+  expect(res.statusCode).toBe(200);
+});
