@@ -123,3 +123,28 @@ exports.refresh = async (req, res) => {
         res.status(401).json({ message: "Refresh inválido" });
     }
 };
+
+// Forgot password
+exports.forgotPassword = async (req, res) => {
+    try {
+        const { email } = req.body;
+        const message = "Si el correo existe, se enviará un enlace";
+        if (!email) {
+            return res.json({ message });
+        }
+        const user = users.find(u => u.email === email);
+        if (user) {
+            const resetToken = crypto.randomBytes(32).toString("hex");
+            const hashedToken = crypto
+                .createHash("sha256")
+                .update(resetToken)
+                .digest("hex");
+            user.resetToken = hashedToken;
+            user.resetTokenExpires = Date.now() + 15 * 60 * 1000; 
+            console.log("TOKEN (simulación email):", resetToken);
+        }
+        return res.json({ message });
+    } catch (error) {
+        return res.json({ message: "Si el proceso es válido, se completará" });
+    }
+};
