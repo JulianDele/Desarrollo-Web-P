@@ -1,4 +1,21 @@
+import { clearSession, fetchWithAuth } from "../auth/session";
+
 function Navbar({ onToggleMenu, menuAbierto, menuId, menuButtonRef }) {
+
+  const handleLogout = async () => {
+    try {
+      await fetchWithAuth("/api/logout", {
+        method: "POST",
+      });
+    } catch (error) {
+      console.error(error);
+    }
+
+    clearSession();
+
+    window.location.href = "/login";
+  };
+
   return (
     <nav className="navbar">
       <button
@@ -13,6 +30,15 @@ function Navbar({ onToggleMenu, menuAbierto, menuId, menuButtonRef }) {
       >
         ☰
       </button>
+
+      <button
+        type="button"
+        className="logout-btn"
+        onClick={handleLogout}
+      >
+        Cerrar sesión
+      </button>
+
     </nav>
   );
 }

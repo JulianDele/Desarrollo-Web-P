@@ -84,19 +84,45 @@ function Login() {
 
       const data = await response.json().catch(() => ({}));
 
+      if (response.status === 401) {
+        setServerError("Tu sesión ha expirado");
+
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 2000);
+
+        return;
+      }
+
       if (!response.ok) {
         setServerError(data.message || "No se pudo iniciar sesión");
         return;
       }
 
-      if (!data.token) {
+      if (!data.accessToken) {
         setServerError("Respuesta inválida del servidor");
         return;
       }
 
-      const serverRole = data.role || data.user?.role || "guest";
-      setSession({ token: data.token, role: serverRole });
-      navigate(getDefaultRouteByRole(serverRole), { replace: true });
+      const serverRole =
+        data.role ||
+        data.user?.role ||
+        "guest";
+
+      // Guardar sesión completa
+      setSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        role: serverRole,
+        sessionId: data.sessionId,
+        expiresAt: data.expiresAt,
+      });
+
+      navigate(
+        getDefaultRouteByRole(serverRole),
+        { replace: true }
+      );
+
     } catch {
       setServerError("No se pudo conectar con el servidor");
     } finally {
@@ -175,10 +201,26 @@ function Login() {
         return;
       }
 
-      if (data.token) {
-        const serverRole = data.role || data.user?.role || "user";
-        setSession({ token: data.token, role: serverRole });
-        navigate(getDefaultRouteByRole(serverRole), { replace: true });
+      if (data.accessToken) {
+
+        const serverRole =
+          data.role ||
+          data.user?.role ||
+          "user";
+
+        setSession({
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          role: serverRole,
+          sessionId: data.sessionId,
+          expiresAt: data.expiresAt,
+        });
+
+        navigate(
+          getDefaultRouteByRole(serverRole),
+          { replace: true }
+        );
+
         return;
       }
 

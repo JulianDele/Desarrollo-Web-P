@@ -5,7 +5,7 @@ const authRoutes = require('./routes/authRoutes');
 const logger = require('./middleware/logger');
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "20mb" }));
 app.use(logger);
 app.use(cors({
     origin: "http://localhost:3000",

@@ -1,4 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import { useEffect } from "react";
+import { listenLogout } from "./auth/session";
 
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
@@ -18,9 +20,17 @@ import ProtectedRoute from "./routes/ProtectedRoute";
 import RoleRoute from "./routes/RoleRoute";
 
 function App() {
+
+  useEffect(() => {
+    listenLogout(() => {
+      window.location.href = "/login";
+    });
+  }, []);
+
   return (
     <Router>
       <Routes>
+
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
         <Route path="/maquinas" element={<Maquinas />} />
@@ -55,6 +65,7 @@ function App() {
         <Route path="/ServerError" element={<ServerError />} />
         <Route path="/NotFound" element={<NotFound />} />
         <Route path="*" element={<NotFound />} />
+
       </Routes>
     </Router>
   );
