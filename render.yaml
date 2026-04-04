@@ -29,6 +29,5 @@ services:
         source: /*
         destination: /index.html
     envVars:
-      # Set to the backend service URL, e.g. https://desarrollo-web-p-backend.onrender.com
       - key: VITE_API_URL
         sync: false
