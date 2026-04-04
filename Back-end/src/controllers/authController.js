@@ -3,6 +3,9 @@ const { generateToken, generateRefreshToken, verifyToken } = require('../utils/t
 const mongoose = require('mongoose');
 const Session = require('../models/Session');
 const sessionStore = require('../utils/sessionStore');
+const PasswordResetToken = require('../models/PasswordResetToken');
+const resetTokenStore = require('../utils/resetTokenStore');
+const { generateToken: generateResetToken, hashToken: hashResetToken, getTtlMinutes } = require('../utils/resetToken');
 
 const users = [];
 
@@ -140,5 +143,144 @@ exports.refresh = async (req, res) => {
     return res.json({ accessToken });
   } catch {
     return res.status(401).json({ message: 'Refresh inválido' });
+  }
+};
+
+const FORGOT_PASSWORD_NEUTRAL_MESSAGE =
+  'Si el correo existe, se enviará un enlace para recuperar la contraseña.';
+
+function isMongoConnected() {
+  return mongoose.connection.readyState === 1;
+}
+
+function getResetExpiresAt() {
+  const ttlMinutes = getTtlMinutes();
+  return new Date(Date.now() + ttlMinutes * 60 * 1000);
+}
+
+exports.forgotPassword = async (req, res) => {
+  // Always respond neutral to prevent user enumeration.
+  const { email } = req.body || {};
+  const normalizedEmail = typeof email === 'string' ? email.trim().toLowerCase() : '';
+
+  if (!normalizedEmail) {
+    return res.status(200).json({ message: FORGOT_PASSWORD_NEUTRAL_MESSAGE });
+  }
+
+  const user = users.find((u) => u.email === normalizedEmail);
+  if (!user) {
+    return res.status(200).json({ message: FORGOT_PASSWORD_NEUTRAL_MESSAGE });
+  }
+
+  try {
+    const rawToken = generateResetToken();
+    const tokenHash = hashResetToken(rawToken);
+    const expiresAt = getResetExpiresAt();
+
+    // Invalidate previous unused tokens for this user (best-effort).
+    if (isMongoConnected()) {
+      await PasswordResetToken.updateMany(
+        { userId: user.id, usedAt: null },
+        { $set: { usedAt: new Date() } }
+      );
+
+      await PasswordResetToken.create({
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+        requestedIp: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+    } else {
+      resetTokenStore.invalidateAllForUser(user.id);
+      resetTokenStore.create({
+        userId: user.id,
+        tokenHash,
+        expiresAt,
+        requestedIp: req.ip,
+        userAgent: req.headers['user-agent'],
+      });
+    }
+
+    // TODO: integrar proveedor de correo transaccional.
+    // En tests devolvemos el token para validar el flujo sin email.
+    if (process.env.NODE_ENV === 'test') {
+      return res.status(200).json({
+        message: FORGOT_PASSWORD_NEUTRAL_MESSAGE,
+        testToken: rawToken,
+      });
+    }
+
+    console.log('Password reset token generated for', normalizedEmail);
+    return res.status(200).json({ message: FORGOT_PASSWORD_NEUTRAL_MESSAGE });
+  } catch {
+    // Still neutral.
+    return res.status(200).json({ message: FORGOT_PASSWORD_NEUTRAL_MESSAGE });
+  }
+};
+
+exports.validateResetToken = async (req, res) => {
+  const { token } = req.body || {};
+  if (!token || typeof token !== 'string') {
+    return res.status(200).json({ valid: false });
+  }
+
+  try {
+    const tokenHash = hashResetToken(token);
+    const now = new Date();
+
+    const record = isMongoConnected()
+      ? await PasswordResetToken.findOne({ tokenHash, usedAt: null, expiresAt: { $gt: now } })
+      : resetTokenStore.findValid(tokenHash);
+
+    return res.status(200).json({ valid: Boolean(record) });
+  } catch {
+    return res.status(200).json({ valid: false });
+  }
+};
+
+exports.resetPassword = async (req, res) => {
+  const { token, newPassword } = req.body || {};
+
+  if (!token || typeof token !== 'string' || !newPassword || typeof newPassword !== 'string') {
+    return res.status(400).json({ message: 'Solicitud inválida' });
+  }
+
+  if (newPassword.trim().length < 8) {
+    return res.status(400).json({ message: 'Contraseña inválida' });
+  }
+
+  try {
+    const tokenHash = hashResetToken(token);
+    const now = new Date();
+
+    const record = isMongoConnected()
+      ? await PasswordResetToken.findOne({ tokenHash, usedAt: null, expiresAt: { $gt: now } })
+      : resetTokenStore.findValid(tokenHash);
+
+    if (!record) {
+      return res.status(400).json({ message: 'Token inválido o expirado' });
+    }
+
+    const user = users.find((u) => u.id === record.userId);
+    if (!user) {
+      // Token valid but user missing (shouldn't happen); treat as invalid.
+      return res.status(400).json({ message: 'Token inválido o expirado' });
+    }
+
+    user.password = await bcrypt.hash(newPassword, 12);
+
+    // Mark token as used (single use) and revoke sessions.
+    if (isMongoConnected()) {
+      await PasswordResetToken.updateOne({ _id: record._id }, { $set: { usedAt: now } });
+      await Session.updateMany({ userId: user.id }, { isActive: false });
+    } else {
+      resetTokenStore.markUsed(tokenHash);
+      sessionStore.deactivateAllForUser(user.id);
+    }
+
+    return res.status(200).json({ message: 'Contraseña actualizada' });
+  } catch {
+    return res.status(500).json({ message: 'Error del servidor' });
   }
 };
