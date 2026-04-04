@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import {
   listenLogout,
   fetchWithAuth,
-  clearSession
+  clearSession,
+  isSessionExpired,
 } from "../auth/session";
 
 function ProtectedRoute({ children }) {
@@ -16,11 +17,17 @@ function ProtectedRoute({ children }) {
 
     const checkSession = async () => {
 
+      if (isSessionExpired()) {
+        clearSession();
+        setSessionExpired(true);
+        setIsValid(false);
+        return;
+      }
+
       try {
 
         // Usar fetchWithAuth (maneja refresh automático)
-        const res =
-          await fetchWithAuth("/api/session");
+        const res = await fetchWithAuth("/api/session");
 
         if (res.ok) {
 
@@ -28,10 +35,9 @@ function ProtectedRoute({ children }) {
 
         } else if (res.status === 401) {
 
-          // sesión expirada
+          // Sesión expirada según el servidor
           setSessionExpired(true);
           setIsValid(false);
-
           clearSession();
 
         } else {
@@ -51,47 +57,34 @@ function ProtectedRoute({ children }) {
     checkSession();
 
     // Escuchar logout desde otras pestañas
-    const stopListening =
-      listenLogout(() => {
-
-        window.location.href =
-          "/login";
-
-      });
+    const stopListening = listenLogout(() => {
+      window.location.href = "/login";
+    });
 
     return () => {
-
       stopListening();
-
     };
 
   }, []);
 
   if (isValid === null) {
-
     return <p>Cargando sesión...</p>;
-
   }
 
   if (sessionExpired) {
-
     return (
       <div>
         <p>Tu sesión ha expirado</p>
         <Navigate to="/login" />
       </div>
     );
-
   }
 
   if (!isValid) {
-
     return <Navigate to="/login" />;
-
   }
 
   return children;
-
 }
 
 export default ProtectedRoute;

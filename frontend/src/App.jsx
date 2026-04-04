@@ -4,6 +4,8 @@ import { listenLogout } from "./auth/session";
 
 import Home from "./pages/Home/Home";
 import Login from "./pages/Login/Login";
+import ForgotPassword from "./pages/ForgotPassword/ForgotPassword";
+import ResetPassword from "./pages/ResetPassword/ResetPassword";
 import Maquinas from "./pages/Maquinas/Maquinas";
 import Servicios from "./pages/Servicios/Servicios";
 import Productos from "./pages/Productos/Productos";
@@ -33,7 +35,12 @@ function App() {
 
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
-        <Route path="/maquinas" element={<Maquinas />} />
+
+        {/* ── Recuperación de contraseña (rutas públicas) ── */}
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password"  element={<ResetPassword />} />
+
+        <Route path="/maquinas"  element={<Maquinas />} />
         <Route path="/servicios" element={<Servicios />} />
         <Route path="/productos" element={<Productos />} />
         <Route path="/ubicacion" element={<Ubicacion />} />
@@ -63,8 +70,8 @@ function App() {
         </Route>
 
         <Route path="/ServerError" element={<ServerError />} />
-        <Route path="/NotFound" element={<NotFound />} />
-        <Route path="*" element={<NotFound />} />
+        <Route path="/NotFound"    element={<NotFound />} />
+        <Route path="*"            element={<NotFound />} />
 
       </Routes>
     </Router>

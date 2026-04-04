@@ -7,8 +7,28 @@ const logger = require('./middleware/logger');
 const app = express();
 app.use(express.json({ limit: "20mb" }));
 app.use(logger);
+
+const allowedOrigins = (process.env.CORS_ORIGIN || "")
+    .split(",")
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+const defaultDevOrigins = new Set([
+    "http://localhost:5173",
+    "http://localhost:3000",
+]);
+
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: (origin, callback) => {
+        if (!origin) return callback(null, true);
+
+        if (allowedOrigins.length > 0) {
+            return callback(null, allowedOrigins.includes(origin));
+        }
+
+        // Dev fallback: allow localhost origins
+        return callback(null, defaultDevOrigins.has(origin));
+    },
     credentials: true
 }));
 // Rutas de autenticación

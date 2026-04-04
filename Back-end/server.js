@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const app = require('./src/app');
 
 const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI;
+const MONGO_URI = process.env.MONGO_URI || process.env.DB_URI;
 
 async function start() {
   if (MONGO_URI) {

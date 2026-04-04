@@ -17,6 +17,15 @@ const ROLE_ALIASES = {
   guest: "guest",
 };
 
+const API_BASE_URL = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+
+export function apiUrl(path) {
+  if (!path) return API_BASE_URL || "";
+  if (/^https?:\/\//i.test(path)) return path;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return API_BASE_URL ? `${API_BASE_URL}${normalizedPath}` : normalizedPath;
+}
+
 export function normalizeRole(role) {
   if (!role || typeof role !== "string") {
     return "guest";
@@ -37,25 +46,11 @@ export function getSession() {
 }
 
 export function setSession({ accessToken, refreshToken, role, sessionId, expiresAt }) {
-  if (accessToken) {
-    localStorage.setItem(TOKEN_KEY, accessToken);
-  }
-
-  if (refreshToken) {
-    localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
-  }
-
-  if (sessionId) {
-    localStorage.setItem(SESSION_ID_KEY, sessionId);
-  }
-
-  if (role) {
-    localStorage.setItem(ROLE_KEY, normalizeRole(role));
-  }
-
-  if (expiresAt) {
-    localStorage.setItem(EXPIRES_KEY, expiresAt);
-  }
+  if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
+  if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  if (sessionId) localStorage.setItem(SESSION_ID_KEY, sessionId);
+  if (role) localStorage.setItem(ROLE_KEY, normalizeRole(role));
+  if (expiresAt) localStorage.setItem(EXPIRES_KEY, expiresAt);
 }
 
 export function clearSession() {
@@ -106,7 +101,7 @@ export async function fetchWithAuth(url, options = {}) {
   let token = localStorage.getItem(TOKEN_KEY);
   const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
 
-  let response = await fetch(url, {
+  let response = await fetch(apiUrl(url), {
     ...options,
     headers: {
       ...(options.headers || {}),
@@ -116,7 +111,7 @@ export async function fetchWithAuth(url, options = {}) {
   });
 
   if (response.status === 401) {
-    const refreshRes = await fetch("/api/refresh", {
+    const refreshRes = await fetch(apiUrl("/api/refresh"), {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",
@@ -130,7 +125,7 @@ export async function fetchWithAuth(url, options = {}) {
         token = data.accessToken;
       }
 
-      response = await fetch(url, {
+      response = await fetch(apiUrl(url), {
         ...options,
         headers: {
           ...(options.headers || {}),

@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./Login.css";
 import gymLogo from "../../assets/gym.png";
 import loginHeroImage from "../../assets/imagen2.jpg";
-import { getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
+import { apiUrl, getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
 import TopNavigation from "../../components/TopNavigation";
 
 function Login() {
@@ -74,7 +74,7 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,12 +85,7 @@ function Login() {
       const data = await response.json().catch(() => ({}));
 
       if (response.status === 401) {
-        setServerError("Tu sesión ha expirado");
-
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 2000);
-
+        setServerError("Credenciales inválidas");
         return;
       }
 
@@ -109,7 +104,6 @@ function Login() {
         data.user?.role ||
         "guest";
 
-      // Guardar sesión completa
       setSession({
         accessToken: data.accessToken,
         refreshToken: data.refreshToken,
@@ -181,7 +175,7 @@ function Login() {
     setIsRegisterSubmitting(true);
 
     try {
-      const response = await fetch("/api/register", {
+      const response = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -446,6 +440,17 @@ function Login() {
                   </p>
                 )}
               </form>
+
+
+              <div className="login-forgot-wrap">
+                <button
+                  type="button"
+                  className="login-switch-btn"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
 
               <div className="login-register-cta">
                 <p>¿No tienes cuenta?</p>
