@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
+const requireAuth = require('./middleware/requireAuth');
 
 const app = express();
 app.use(express.json());
@@ -12,7 +13,7 @@ app.use(cors({
 // Rutas de autenticación
 app.use('/api', authRoutes);
 //http 200
-app.get('/api/items', (req, res) =>{
+app.get('/api/items', requireAuth, (req, res) =>{
     res.json([{ id: 1, name: 'Elemento A', status: 'Activo'}, { id: 2, name: 'Elemento B', status: 'Inactivo'}]);
 })
 app.get('/api/error', (req, res) =>{
@@ -25,7 +26,7 @@ app.get('/api/state-error', (req, res) => {
     res.status(500).json({ status: 'error', message: 'fallo al cambiar el estado' });
 });
 // Simula una respuesta 200 con retraso para probar el manejo de tiempos de espera
-app.get('/api/items-delay', (req, res) => {
+app.get('/api/items-delay', requireAuth, (req, res) => {
     setTimeout(() => {
         res.json([{ id: 1, name: 'Elemento A', status: 'Activo'}, { id: 2, name: 'Elemento B', status: 'Inactivo'}]);
     }, 2000);
@@ -43,16 +44,17 @@ app.get('/api/flaky', (req, res) => {
         res.json({ data: 'datos cargados correctamente' });
     } 
 });
-//error 400 controlado para el cliente
+// error 400 controlado para el cliente
 app.get('/api/bad-request', (req, res) => {
     res.status(400).json({ message: 'solicitud invalida'});
 });
-//error 404 controlado
+// error 404 controlado
 app.get('/api/not-found', (req, res) => {
     res.status(404).json({ message: 'recurso no encontrado'});
 });
+// estado del servidor (health check)
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
+    res.json({ status: 'ok', message: 'servicio activo' });
 });
 
 module.exports = app;

@@ -1,29 +1,42 @@
+const users = require('../data/users'); 
 const { verifyToken } = require('../utils/token');
-const Session = require('../models/Session');
+const responses = require('../utils/responses');
 
 module.exports = async (req, res, next) => {
 
     const authHeader = req.headers.authorization;
+
     if (!authHeader) {
-        return res.status(401).json({ message: "No autorizado" });
+        return responses.unauthorized(res);
     }
+
     const token = authHeader.split(" ")[1];
+
+    if (!token) {
+        return responses.unauthorized(res);
+    }
+
     try {
         const decoded = verifyToken(token);
-        const session = await Session.findOne({ tokenHash: token });
 
-        if (!session || !session.isActive) {
-            return res.status(401).json({ message: "Sesión inválida" });
+        if (decoded.type !== "access") {
+            return responses.unauthorized(res);
         }
 
-        if (new Date() > session.expiresAt) {
-            return res.status(401).json({ message: "Sesión expirada" });
+        const user = users.find(u => u.id === decoded.id);
+
+        if (!user) {
+            return responses.unauthorized(res);
         }
 
-        req.user = decoded;
-        req.session = session;
+        req.user = {
+            id: user.id,
+            role: user.role
+        };
+
         next();
+
     } catch (error) {
-        return res.status(401).json({ message: "Token inválido" });
+        return responses.unauthorized(res);
     }
 };

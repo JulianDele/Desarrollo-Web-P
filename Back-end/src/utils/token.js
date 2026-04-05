@@ -3,13 +3,14 @@ const jwt = require('jsonwebtoken');
 const SECRET = process.env.JWT_SECRET;
 
 if (!SECRET) {
-    throw new Error("JWT_SECRET no está definido en variables de entorno ");
+    throw new Error("JWT_SECRET no está definido en variables de entorno");
 }
 exports.generateToken = (user) => {
     return jwt.sign(
         {
             id: user.id,
-            role: user.role
+            role: user.role,
+            type: "access"
         },
         SECRET,
         { expiresIn: "1h" }
@@ -20,7 +21,10 @@ exports.verifyToken = (token) => {
 };
 exports.generateRefreshToken = (user) => {
     return jwt.sign(
-        { id: user.id },
+        {
+            id: user.id,
+            type: "refresh"
+        },
         SECRET,
         { expiresIn: "7d" }
     );

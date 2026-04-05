@@ -1,8 +1,9 @@
-module.exports = (role) => {
+const responses = require('../utils/responses');
 
+module.exports = (...rolesPermitidos) => {
     return (req, res, next) => {
-        if (!req.user || req.user.role !== role) {
-            return res.status(403).json({ message: "Acceso prohibido" });
+        if (!req.user || !rolesPermitidos.includes(req.user.role)) {
+            return responses.forbidden(res);
         }
         next();
     };
