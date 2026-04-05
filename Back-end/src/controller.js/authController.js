@@ -66,7 +66,6 @@ exports.login = async (req, res) => {
         res.status(500).json({ message: "Error del servidor" });
     }
 };
-
 // Logout
 exports.logout = async (req, res) => {
     try {
