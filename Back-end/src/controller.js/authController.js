@@ -2,13 +2,17 @@ const bcrypt = require('bcryptjs');
 const { generateToken, generateRefreshToken, verifyToken } = require('../utils/token');
 const Session = require('../models/Session');
 const crypto = require('crypto');
+const users = require('../data/users');
 
-const users = [];
-
-// registro
+const ROLES = {
+    ADMIN: "admin",
+    RECEPCIONISTA: "recepcionista",
+    CLIENTE: "cliente"
+};
+// Registro
 exports.register = async (req, res) => {
     try {
-        const { email, password, role } = req.body;
+        const { email, password, } = req.body;
         if (!email || !password) {
             return res.status(400).json({ message: "Datos inválidos" });
         }
@@ -21,16 +25,17 @@ exports.register = async (req, res) => {
             id: Date.now(),
             email,
             password: hashedPassword,
-            role: role || "user"
+            role: ROLES.CLIENTE
         };
         users.push(newUser);
         res.json({ message: "Usuario registrado correctamente" });
-    } catch {
+    } catch (error) {
+        console.error("ERROR REGISTER:", error);
         res.status(500).json({ message: "Error del servidor" });
     }
 };
 
-// multisesión 
+// Login
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
@@ -48,28 +53,21 @@ exports.login = async (req, res) => {
         const accessToken = generateToken(user);
         const refreshToken = generateRefreshToken(user);
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-        const session = await Session.create({
-            userId: user.id,
-            tokenHash: accessToken,
-            device: req.headers['user-agent'],
-            ip: req.ip,
-            expiresAt
-        });
         res.json({
             message: "Login exitoso",
             user: { id: user.id, email: user.email },
             role: user.role,
-            sessionId: session._id,
             expiresAt,
             accessToken,
             refreshToken
         });
-    } catch {
+    } catch (error){
+        console.error("ERROR REGISTER:", error);
         res.status(500).json({ message: "Error del servidor" });
     }
 };
 
-// solo sesión actual
+// Logout
 exports.logout = async (req, res) => {
     try {
         await Session.findByIdAndUpdate(req.session._id, { isActive: false });
@@ -79,7 +77,7 @@ exports.logout = async (req, res) => {
     }
 };
 
-// all logout
+// logout-all
 exports.logoutAll = async (req, res) => {
     try {
         await Session.updateMany(
@@ -96,7 +94,7 @@ exports.session = (req, res) => {
     res.json({ user: req.user });
 };
 
-// lista
+// lista de sesiones
 exports.sessions = async (req, res) => {
     try {
         const sessions = await Session.find({
@@ -109,7 +107,7 @@ exports.sessions = async (req, res) => {
     }
 };
 
-// refresh token
+// Refresh token
 exports.refresh = async (req, res) => {
     try {
         const { refreshToken } = req.body;
@@ -117,6 +115,9 @@ exports.refresh = async (req, res) => {
             return res.status(400).json({ message: "Refresh requerido" });
         }
         const decoded = verifyToken(refreshToken);
+        if (decoded.type !== "refresh") {
+            return res.status(401).json({ message: "Token inválido" });
+      }
         const newAccessToken = generateToken(decoded);
         res.json({ accessToken: newAccessToken });
     } catch {
