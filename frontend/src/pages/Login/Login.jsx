@@ -1,4 +1,4 @@
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 import "./Login.css";
 import gymLogo from "../../assets/gym.png";
@@ -6,8 +6,27 @@ import loginHeroImage from "../../assets/imagen2.jpg";
 import { getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
 import TopNavigation from "../../components/TopNavigation";
 
+/**
+ * Mensajes de UX para 401 y 403 según ?reason= en la URL:
+ *
+ *  ?reason=expired  → sesión expirada (401) — el usuario debe volver a autenticarse
+ *  ?reason=forbidden → acceso denegado (403) — el rol no tiene permisos para esa ruta
+ *  ?reason=error    → error inesperado del servidor
+ *
+ * Estos mensajes son informativos y nunca exponen detalles técnicos al usuario.
+ */
+
+const REASON_MESSAGES = {
+  expired: "Tu sesión ha expirado. Por favor inicia sesión nuevamente.",
+  forbidden: "No tienes permisos para acceder a esa sección.",
+  error: "Ocurrió un error inesperado. Por favor inicia sesión nuevamente.",
+};
+
 function Login() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const reason = searchParams.get("reason");
+  const reasonMessage = REASON_MESSAGES[reason] || null;
 
   const [formData, setFormData] = useState({
     username: "",
@@ -85,12 +104,7 @@ function Login() {
       const data = await response.json().catch(() => ({}));
 
       if (response.status === 401) {
-        setServerError("Tu sesión ha expirado");
-
-        setTimeout(() => {
-          window.location.href = "/login";
-        }, 2000);
-
+        setServerError("Credenciales incorrectas. Verifica tu usuario y contraseña.");
         return;
       }
 
@@ -200,7 +214,6 @@ function Login() {
       }
 
       if (data.accessToken) {
-
         const serverRole =
           data.role ||
           data.user?.role ||
@@ -345,11 +358,24 @@ function Login() {
             <>
               <h2 className="login-title">INGRESA TU USUARIO</h2>
               <p className="login-subtitle">Accede a tu cuenta de entrenamiento</p>
+
+              {/* ── Mensaje de razón de redirección (401 / 403) ── */}
+              {reasonMessage && (
+                <p
+                  className="auth-notice-text"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  {reasonMessage}
+                </p>
+              )}
+
               {registerSuccess && (
                 <p className="auth-success-text" role="status" aria-live="polite">
                   {registerSuccess}
                 </p>
               )}
+
               <form
                 onSubmit={handleSubmit}
                 className="login-form"
@@ -444,7 +470,7 @@ function Login() {
                 )}
               </form>
 
-
+              {/* ── Enlace fuera del form para no interferir con el submit ── */}
               <div className="login-forgot-wrap">
                 <button
                   type="button"
