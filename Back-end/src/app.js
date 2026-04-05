@@ -1,10 +1,26 @@
 const express = require('express');
+const helmet = require('helmet');
 const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const logger = require('./middleware/logger');
 
+// Validar variables de entorno requeridas al arranque
+const requiredEnvVars = [
+    'JWT_SECRET', 'REFRESH_SECRET', 'RESET_TOKEN_SECRET',
+    'DB_URI', 'REDIS_URI', 'MAIL_USER', 'MAIL_PASS'
+];
+const missingVars = requiredEnvVars.filter(v => !process.env[v]);
+if (missingVars.length > 0) {
+    console.error(` Variables de entorno faltantes: ${missingVars.join(', ')}`);
+    process.exit(1);
+}
+
 const app = express();
+// Headers de seguridad
+app.use(helmet());
+app.use(logger);  // ← aquí
+app.use(express.json());
 
 //  HTTPS obligatorio en producción
 app.use((req, res, next) => {
@@ -14,14 +30,24 @@ app.use((req, res, next) => {
     next();
 });
 
-app.use(express.json());
-app.use(logger);
+// CORS restringido
+const allowedOrigins = process.env.NODE_ENV === 'production'
+    ? [process.env.FRONTEND_URL]
+    : ['http://localhost:3000', 'http://localhost:5173'];
+
 app.use(cors({
-        origin: process.env.NODE_ENV === 'production' 
-        ? process.env.FRONTEND_URL  // en prod usa variable de entorno
-        : "http://localhost:3000",
-    credentials: true
+    origin: (origin, callback) => {
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('No permitido por CORS'));
+        }
+    },
+    credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+    allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 
 //  Health check para CI smoke test y monitoreo
 app.get('/api/health', (req, res) => {

@@ -7,10 +7,10 @@ services:
     container_name: backend_app
     ports:
       - "3000:3000"
-
+      
     env_file:
       - .env
-
+      - ./Back-end/.env
     depends_on:
       - mongo
       - redis
