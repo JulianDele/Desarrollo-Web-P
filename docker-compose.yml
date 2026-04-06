@@ -11,11 +11,16 @@ services:
     env_file:
       - .env
     environment:
-      - NODE_ENV=${NODE_ENV:-development}
-      - PORT=${PORT:-3000}
-      - JWT_SECRET=${JWT_SECRET:-devsecret}
-      - MONGO_URI=${MONGO_URI:-mongodb://mongo:27017/gymdb}
-      - REDIS_URL=${REDIS_URL:-redis://redis:6379}
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: ${PORT:-3000}
+      JWT_SECRET: ${JWT_SECRET:-devsecret}
+      REFRESH_SECRET: ${REFRESH_SECRET:-devrefresh}
+      RESET_TOKEN_SECRET: ${RESET_TOKEN_SECRET:-devreset}
+      RESET_TOKEN_TTL_MINUTES: ${RESET_TOKEN_TTL_MINUTES:-15}
+      MONGO_URI: ${MONGO_URI:-mongodb://mongo:27017/gymdb}
+      DB_URI: ${DB_URI:-mongodb://mongo:27017/gymdb}
+      CORS_ORIGIN: ${CORS_ORIGIN:-http://localhost:5173}
+      REDIS_URI: ${REDIS_URI:-redis://redis:6379}
     depends_on:
       - mongo
       - redis

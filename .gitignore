@@ -2,4 +2,5 @@ Back-end/node_modules/
 frontend/node_modules/
 frontend/dist/
 Back-end/.env
+.env
 *.log
