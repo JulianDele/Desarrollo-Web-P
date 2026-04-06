@@ -1,36 +1,49 @@
 const mongoose = require('mongoose');
-const { verifyToken } = require('../utils/token');
 const Session = require('../models/Session');
 const sessionStore = require('../utils/sessionStore');
+const { verifyToken } = require('../utils/token');
+const users = require('../data/users');
+const responses = require('../utils/responses');
+
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization || '';
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) return null;
+  return token;
+}
 
 module.exports = async (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader) {
-    return res.status(401).json({ message: 'No autorizado' });
-  }
-
-  const token = authHeader.split(' ')[1];
+  const token = getBearerToken(req);
+  if (!token) return responses.unauthorized(res);
 
   try {
     const decoded = verifyToken(token);
 
+    if (decoded.type !== 'access') {
+      return responses.unauthorized(res);
+    }
+
     const useDatabase = mongoose.connection.readyState === 1;
-    const session = useDatabase
-      ? await Session.findOne({ tokenHash: token })
-      : sessionStore.getSessionByToken(token);
+    const session = useDatabase ? await Session.findOne({ tokenHash: token }) : sessionStore.getSessionByToken(token);
 
     if (!session || !session.isActive) {
-      return res.status(401).json({ message: 'Sesión inválida' });
+      return responses.unauthorized(res);
     }
 
     if (new Date() > session.expiresAt) {
-      return res.status(401).json({ message: 'Sesión expirada' });
+      return responses.unauthorized(res);
     }
 
-    req.user = decoded;
+    const user = users.find((u) => u.id === decoded.id);
+    if (!user) {
+      return responses.unauthorized(res);
+    }
+
+    // Avoid privilege escalation: do not trust token payload beyond user id.
+    req.user = { id: user.id, role: user.role };
     req.session = session;
     return next();
   } catch {
-    return res.status(401).json({ message: 'Token inválido' });
+    return responses.unauthorized(res);
   }
 };

@@ -3,79 +3,90 @@ const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const logger = require('./middleware/logger');
+const requireAuth = require('./middleware/requireAuth');
 
 const app = express();
-app.use(express.json({ limit: "20mb" }));
+app.use(express.json({ limit: '20mb' }));
 app.use(logger);
 
-const allowedOrigins = (process.env.CORS_ORIGIN || "")
-    .split(",")
-    .map((value) => value.trim())
-    .filter(Boolean);
+const allowedOrigins = (process.env.CORS_ORIGIN || '')
+  .split(',')
+  .map((value) => value.trim())
+  .filter(Boolean);
 
-const defaultDevOrigins = new Set([
-    "http://localhost:5173",
-    "http://localhost:3000",
-]);
+const defaultDevOrigins = new Set(['http://localhost:5173', 'http://localhost:3000']);
 
-app.use(cors({
+app.use(
+  cors({
     origin: (origin, callback) => {
-        if (!origin) return callback(null, true);
+      if (!origin) return callback(null, true);
 
-        if (allowedOrigins.length > 0) {
-            return callback(null, allowedOrigins.includes(origin));
-        }
+      if (allowedOrigins.length > 0) {
+        return callback(null, allowedOrigins.includes(origin));
+      }
 
-        // Dev fallback: allow localhost origins
-        return callback(null, defaultDevOrigins.has(origin));
+      return callback(null, defaultDevOrigins.has(origin));
     },
-    credentials: true
-}));
+    credentials: true,
+  })
+);
+
 // Rutas de autenticación
 app.use('/api', authRoutes);
-//http 200
-app.get('/api/items', (req, res) =>{
-    res.json([{ id: 1, name: 'Elemento A', status: 'Activo'}, { id: 2, name: 'Elemento B', status: 'Inactivo'}]);
-})
-app.get('/api/error', (req, res) =>{
-    res.status(500).json({ message: 'Error interno del servidor' });
-})
+
+// Rutas demo (algunas protegidas)
+app.get('/api/items', requireAuth, (req, res) => {
+  res.json([
+    { id: 1, name: 'Elemento A', status: 'Activo' },
+    { id: 2, name: 'Elemento B', status: 'Inactivo' },
+  ]);
+});
+
+app.get('/api/items-delay', requireAuth, (req, res) => {
+  setTimeout(() => {
+    res.json([
+      { id: 1, name: 'Elemento A', status: 'Activo' },
+      { id: 2, name: 'Elemento B', status: 'Inactivo' },
+    ]);
+  }, 2000);
+});
+
+app.get('/api/error', (req, res) => {
+  res.status(500).json({ message: 'Error interno del servidor' });
+});
+
 app.get('/api/state-ok', (req, res) => {
-    res.json({ status: 'activo', selected: true });
+  res.json({ status: 'activo', selected: true });
 });
+
 app.get('/api/state-error', (req, res) => {
-    res.status(500).json({ status: 'error', message: 'fallo al cambiar el estado' });
+  res.status(500).json({ status: 'error', message: 'fallo al cambiar el estado' });
 });
-// Simula una respuesta 200 con retraso para probar el manejo de tiempos de espera
-app.get('/api/items-delay', (req, res) => {
-    setTimeout(() => {
-        res.json([{ id: 1, name: 'Elemento A', status: 'Activo'}, { id: 2, name: 'Elemento B', status: 'Inactivo'}]);
-    }, 2000);
-});
-// Simula un error de red para probar el manejo de errores de red
+
 app.get('/api/network-error', (req, res) => {
-    res.status(503).json({ message: 'servicio no disponible'});
+  res.status(503).json({ message: 'servicio no disponible' });
 });
-// Simula una respuesta intermitente para probar el manejo de errores intermitentes
+
 app.get('/api/flaky', (req, res) => {
-    const falla = Math.random() < 0.5;
-    if ( falla) {
-        res.status(500).json({ message: 'error en el servidor' });
-    } else {
-        res.json({ data: 'datos cargados correctamente' });
-    } 
+  const falla = Math.random() < 0.5;
+  if (falla) {
+    res.status(500).json({ message: 'error en el servidor' });
+  } else {
+    res.json({ data: 'datos cargados correctamente' });
+  }
 });
-//error 400 controlado para el cliente
+
 app.get('/api/bad-request', (req, res) => {
-    res.status(400).json({ message: 'solicitud invalida'});
+  res.status(400).json({ message: 'solicitud invalida' });
 });
-//error 404 controlado
+
 app.get('/api/not-found', (req, res) => {
-    res.status(404).json({ message: 'recurso no encontrado'});
+  res.status(404).json({ message: 'recurso no encontrado' });
 });
+
+// health check
 app.get('/api/health', (req, res) => {
-    res.json({ status: 'ok' });
+  res.json({ status: 'ok', message: 'servicio activo' });
 });
 
 module.exports = app;
-

@@ -57,7 +57,7 @@ describe('Auth API Tests', () => {
   });
 
   test('Token expirado', async () => {
-    const expiredToken = jwt.sign({ id: 1, role: 'user' }, process.env.JWT_SECRET, {
+    const expiredToken = jwt.sign({ id: 1, type: 'access' }, process.env.JWT_SECRET, {
       expiresIn: '-1s',
     });
 
@@ -68,6 +68,23 @@ describe('Auth API Tests', () => {
   test('Acceso restringido por rol', async () => {
     const res = await request(app).get('/api/admin').set('Authorization', `Bearer ${accessToken}`);
     expect(res.statusCode).toBe(403);
+  });
+
+  test('Token refresh no sirve para rutas protegidas', async () => {
+    const login = await request(app).post('/api/login').send(user);
+    const refresh = login.body.refreshToken;
+
+    const res = await request(app).get('/api/session').set('Authorization', `Bearer ${refresh}`);
+    expect(res.statusCode).toBe(401);
+  });
+
+  test('Admin puede acceder a ruta admin', async () => {
+    const adminUser = { email: 'admin@test.com', password: '123456', role: 'admin' };
+    await request(app).post('/api/register').send(adminUser);
+    const login = await request(app).post('/api/login').send({ email: adminUser.email, password: adminUser.password });
+
+    const res = await request(app).get('/api/admin').set('Authorization', `Bearer ${login.body.accessToken}`);
+    expect(res.statusCode).toBe(200);
   });
 
   test('Dos logins crean dos sesiones', async () => {

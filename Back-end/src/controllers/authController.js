@@ -1,4 +1,5 @@
 const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
 const { generateToken, generateRefreshToken, verifyToken } = require('../utils/token');
 const mongoose = require('mongoose');
 const Session = require('../models/Session');
@@ -7,7 +8,7 @@ const PasswordResetToken = require('../models/PasswordResetToken');
 const resetTokenStore = require('../utils/resetTokenStore');
 const { generateToken: generateResetToken, hashToken: hashResetToken, getTtlMinutes } = require('../utils/resetToken');
 
-const users = [];
+const users = require('../data/users');
 
 exports.register = async (req, res) => {
   try {
@@ -16,7 +17,10 @@ exports.register = async (req, res) => {
       return res.status(400).json({ message: 'Datos inválidos' });
     }
 
-    const existingUser = users.find((u) => u.email === email);
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const requestedRole = typeof role === 'string' ? role.trim().toLowerCase() : 'user';
+
+    const existingUser = users.find((u) => u.email === normalizedEmail);
     if (existingUser) {
       return res.status(400).json({ message: 'Usuario ya existe' });
     }
@@ -24,9 +28,9 @@ exports.register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
     const newUser = {
       id: Date.now(),
-      email,
+      email: normalizedEmail,
       password: hashedPassword,
-      role: role || 'user',
+      role: requestedRole || 'user',
     };
 
     users.push(newUser);
@@ -43,7 +47,8 @@ exports.login = async (req, res) => {
       return res.status(400).json({ message: 'Credenciales inválidas' });
     }
 
-    const user = users.find((u) => u.email === email);
+    const normalizedEmail = String(email).trim().toLowerCase();
+    const user = users.find((u) => u.email === normalizedEmail);
     if (!user) {
       return res.status(401).json({ message: 'Credenciales inválidas' });
     }
@@ -55,7 +60,8 @@ exports.login = async (req, res) => {
 
     const accessToken = generateToken(user);
     const refreshToken = generateRefreshToken(user);
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
+    const decoded = jwt.decode(accessToken);
+    const expiresAt = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 60 * 60 * 1000);
 
     const sessionData = {
       userId: user.id,
@@ -134,6 +140,9 @@ exports.refresh = async (req, res) => {
     }
 
     const decoded = verifyToken(refreshToken);
+    if (decoded.type !== 'refresh') {
+      return res.status(401).json({ message: 'Refresh invÃ¡lido' });
+    }
     const user = users.find((u) => u.id === decoded.id);
     if (!user) {
       return res.status(401).json({ message: 'Refresh inválido' });
