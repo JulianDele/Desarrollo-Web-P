@@ -3,16 +3,24 @@ import { useEffect, useState } from "react";
 
 import { listenLogout, fetchWithAuth, clearSession, isSessionExpired } from "../auth/session";
 
-function ProtectedRoute({ children }) {
-  const [isValid, setIsValid] = useState(null);
-  const [sessionExpired, setSessionExpired] = useState(false);
+/**
+ * ProtectedRoute — guarda de autenticación.
+ *
+ * Flujo:
+ * 1) Si el token expiró localmente => limpia y redirige a /login?reason=expired
+ * 2) Verifica con backend vía fetchWithAuth (/api/session)
+ * 3) 401 => sesión expirada => redirige a /login?reason=expired
+ * 4) Error inesperado => redirige a /login?reason=error
+ * 5) OK => renderiza children
+ */
+export default function ProtectedRoute({ children }) {
+  const [authStatus, setAuthStatus] = useState("checking"); // checking | ok | expired | error
 
   useEffect(() => {
     const checkSession = async () => {
       if (isSessionExpired()) {
         clearSession();
-        setSessionExpired(true);
-        setIsValid(false);
+        setAuthStatus("expired");
         return;
       }
 
@@ -20,50 +28,47 @@ function ProtectedRoute({ children }) {
         const res = await fetchWithAuth("/api/session");
 
         if (res.ok) {
-          setIsValid(true);
-        } else if (res.status === 401) {
-          setSessionExpired(true);
-          setIsValid(false);
-          clearSession();
-        } else {
-          setIsValid(false);
+          setAuthStatus("ok");
+          return;
         }
+
+        if (res.status === 401) {
+          clearSession();
+          setAuthStatus("expired");
+          return;
+        }
+
+        setAuthStatus("error");
       } catch {
-        setIsValid(false);
+        setAuthStatus("error");
       }
     };
 
     checkSession();
 
     const stopListening = listenLogout(() => {
-      window.location.href = "/login";
+      window.location.href = "/login?reason=expired";
     });
 
     return () => stopListening();
   }, []);
 
-  if (isValid === null) {
+  if (authStatus === "checking") {
     return (
-      <p role="status" aria-live="polite">
-        Cargando sesión...
-      </p>
-    );
-  }
-
-  if (sessionExpired) {
-    return (
-      <div>
-        <p role="alert">Tu sesión ha expirado</p>
-        <Navigate to="/login" />
+      <div className="auth-checking" role="status" aria-live="polite">
+        <p>Cargando sesión...</p>
       </div>
     );
   }
 
-  if (!isValid) {
-    return <Navigate to="/login" />;
+  if (authStatus === "expired") {
+    return <Navigate to="/login?reason=expired" replace />;
+  }
+
+  if (authStatus === "error") {
+    return <Navigate to="/login?reason=error" replace />;
   }
 
   return children;
 }
 
-export default ProtectedRoute;

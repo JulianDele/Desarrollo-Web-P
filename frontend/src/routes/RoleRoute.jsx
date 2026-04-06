@@ -1,23 +1,41 @@
+import { Navigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
-import { fetchWithAuth, getDefaultRouteByRole, getSession, normalizeRole } from "../auth/session";
 
+import {
+  clearSession,
+  fetchWithAuth,
+  getDefaultRouteByRole,
+  getSession,
+  isSessionExpired,
+  normalizeRole,
+} from "../auth/session";
+
+/**
+ * RoleRoute — guarda por rol.
+ * - No confía en el rol guardado en localStorage (puede ser manipulado).
+ * - Consulta al backend (/api/session) antes de autorizar.
+ */
 export default function RoleRoute({ children, allowedRoles = [], redirectTo }) {
-  const navigate = useNavigate();
-  const { token } = getSession();
-
-  const normalizedAllowedRoles = useMemo(
-    () => allowedRoles.map((allowedRole) => normalizeRole(allowedRole)),
+  const normalizedAllowed = useMemo(
+    () => allowedRoles.map((role) => normalizeRole(role)),
     [allowedRoles]
   );
 
-  const [status, setStatus] = useState("checking"); // checking | allowed | forbidden | unauth
+  const [authStatus, setAuthStatus] = useState("checking"); // checking | authorized | expired | forbidden | error
   const [serverRole, setServerRole] = useState("guest");
 
   useEffect(() => {
-    const checkRole = async () => {
+    const verify = async () => {
+      const { token } = getSession();
+
       if (!token) {
-        setStatus("unauth");
+        setAuthStatus("expired");
+        return;
+      }
+
+      if (isSessionExpired()) {
+        clearSession();
+        setAuthStatus("expired");
         return;
       }
 
@@ -25,51 +43,55 @@ export default function RoleRoute({ children, allowedRoles = [], redirectTo }) {
         const res = await fetchWithAuth("/api/session");
         const data = await res.json().catch(() => ({}));
 
+        if (res.status === 401) {
+          clearSession();
+          setAuthStatus("expired");
+          return;
+        }
+
         if (!res.ok) {
-          setStatus("unauth");
+          setAuthStatus("error");
           return;
         }
 
         const role = normalizeRole(data?.user?.role);
         setServerRole(role);
 
-        if (normalizedAllowedRoles.includes(role)) {
-          setStatus("allowed");
-        } else {
-          setStatus("forbidden");
+        if (!normalizedAllowed.includes(role)) {
+          setAuthStatus("forbidden");
+          return;
         }
+
+        setAuthStatus("authorized");
       } catch {
-        setStatus("unauth");
+        setAuthStatus("error");
       }
     };
 
-    checkRole();
-  }, [token, normalizedAllowedRoles]);
+    verify();
+  }, [normalizedAllowed]);
 
-  if (status === "checking") {
+  if (authStatus === "checking") {
     return (
-      <p role="status" aria-live="polite">
-        Verificando permisos...
-      </p>
-    );
-  }
-
-  if (status === "unauth") {
-    return <Navigate to="/login" replace />;
-  }
-
-  if (status === "forbidden") {
-    const fallbackRoute = redirectTo || getDefaultRouteByRole(serverRole);
-
-    return (
-      <div role="alert" aria-live="assertive">
-        <p>No tienes permisos para acceder a esta sección.</p>
-        <button type="button" onClick={() => navigate(fallbackRoute, { replace: true })}>
-          Volver
-        </button>
+      <div className="auth-checking" role="status" aria-live="polite">
+        <p>Verificando acceso...</p>
       </div>
     );
   }
 
+  if (authStatus === "expired") {
+    return <Navigate to="/login?reason=expired" replace />;
+  }
+
+  if (authStatus === "forbidden") {
+    const fallback = redirectTo || getDefaultRouteByRole(serverRole);
+    return <Navigate to={`${fallback}?reason=forbidden`} replace />;
+  }
+
+  if (authStatus === "error") {
+    return <Navigate to="/login?reason=error" replace />;
+  }
+
   return children;
 }
+
