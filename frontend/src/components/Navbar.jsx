@@ -1,19 +1,16 @@
-import { clearSession } from "../auth/session";
+import { clearSession, fetchWithAuth } from "../auth/session";
 
 function Navbar({ onToggleMenu, menuAbierto, menuId, menuButtonRef }) {
-
   const handleLogout = async () => {
     try {
-      await fetch("/api/logout", {
+      await fetchWithAuth("/api/logout", {
         method: "POST",
-        credentials: "include",
       });
     } catch (error) {
       console.error(error);
     }
 
     clearSession();
-
     window.location.href = "/login";
   };
 
@@ -32,14 +29,9 @@ function Navbar({ onToggleMenu, menuAbierto, menuId, menuButtonRef }) {
         ☰
       </button>
 
-      <button
-        type="button"
-        className="logout-btn"
-        onClick={handleLogout}
-      >
+      <button type="button" className="logout-btn" onClick={handleLogout}>
         Cerrar sesión
       </button>
-
     </nav>
   );
 }

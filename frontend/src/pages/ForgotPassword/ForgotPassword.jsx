@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import "./ForgotPassword.css";
 import gymLogo from "../../assets/gym.png";
 import TopNavigation from "../../components/TopNavigation";
+import { apiUrl } from "../../auth/session";
 
 
 function ForgotPassword() {
@@ -51,15 +52,14 @@ function ForgotPassword() {
     setStatus("submitting");
 
     try {
-      const response = await fetch("/api/auth/forgot-password", {
+      const response = await fetch(apiUrl("/api/forgot-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
       });
 
-      // Respuesta 200 o 404: siempre mostramos el mismo mensaje neutro
-      // para no confirmar si el email existe en la base de datos.
-      if (response.ok || response.status === 404) {
+      // Respuesta siempre neutra para no confirmar si el email existe.
+      if (response.ok) {
         setStatus("sent");
         return;
       }

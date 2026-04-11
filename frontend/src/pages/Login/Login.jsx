@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./Login.css";
 import gymLogo from "../../assets/gym.png";
 import loginHeroImage from "../../assets/imagen2.jpg";
-import { getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
+import { apiUrl, getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
 import TopNavigation from "../../components/TopNavigation";
 
 /**
@@ -93,7 +93,7 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +104,9 @@ function Login() {
       const data = await response.json().catch(() => ({}));
 
       if (response.status === 401) {
+
         setServerError("Credenciales incorrectas. Verifica tu usuario y contraseña.");
+
         return;
       }
 
@@ -125,6 +127,7 @@ function Login() {
 
       setSession({
         accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
         role: serverRole,
         sessionId: data.sessionId,
         expiresAt: data.expiresAt,
@@ -193,7 +196,7 @@ function Login() {
     setIsRegisterSubmitting(true);
 
     try {
-      const response = await fetch("/api/register", {
+      const response = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -221,6 +224,7 @@ function Login() {
 
         setSession({
           accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
           role: serverRole,
           sessionId: data.sessionId,
           expiresAt: data.expiresAt,

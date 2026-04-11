@@ -1,21 +1,15 @@
-import { useState, useRef, useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import "./ResetPassword.css";
 import gymLogo from "../../assets/gym.png";
 import TopNavigation from "../../components/TopNavigation";
 import { usePasswordPolicy } from "../../auth/usePasswordPolicy";
+import { apiUrl } from "../../auth/session";
 
 /**
- * Estados del flujo:
- *  validating      → verificando el token al montar
- *  invalid_token   → token ausente o malformado
- *  expired_token   → token válido pero expirado (400/410 del server)
- *  ready           → formulario activo
- *  submitting      → enviando nueva contraseña
- *  success         → contraseña cambiada con éxito
- *  network_error   → fallo de red
+ * Estados:
+ * validating | invalid_token | expired_token | ready | submitting | success | network_error
  */
-
 function ResetPassword() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -31,25 +25,45 @@ function ResetPassword() {
   const passwordInputRef = useRef(null);
   const headingRef = useRef(null);
 
-  // Hook de política de contraseña
   const { valid: policyValid, rules: policyRules } = usePasswordPolicy(formData.password);
 
-  // ── Al montar: validar presencia y formato básico del token ──
   useEffect(() => {
-    if (!token || token.length < 10) {
-      setStatus("invalid_token");
-      return;
-    }
-    // Validación ligera en cliente (formato UUID o similar)
-    const tokenPattern = /^[a-zA-Z0-9\-_]{10,}$/;
-    if (!tokenPattern.test(token)) {
-      setStatus("invalid_token");
-      return;
-    }
-    setStatus("ready");
+    const validateToken = async () => {
+      if (!token || token.length < 10) {
+        setStatus("invalid_token");
+        return;
+      }
+
+      const tokenPattern = /^[a-zA-Z0-9\-_]{10,}$/;
+      if (!tokenPattern.test(token)) {
+        setStatus("invalid_token");
+        return;
+      }
+
+      setStatus("validating");
+
+      try {
+        const res = await fetch(apiUrl("/api/reset-password/validate"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ token }),
+        });
+
+        const data = await res.json().catch(() => ({}));
+        if (res.ok && data.valid) {
+          setStatus("ready");
+          return;
+        }
+
+        setStatus("expired_token");
+      } catch {
+        setStatus("network_error");
+      }
+    };
+
+    validateToken();
   }, [token]);
 
-  // Llevar el foco al heading cuando cambia el estado
   useEffect(() => {
     if (status !== "validating" && status !== "submitting") {
       headingRef.current?.focus();
@@ -62,7 +76,6 @@ function ResetPassword() {
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    // Limpiar error del campo al escribir
     if (fieldErrors[name]) {
       setFieldErrors((prev) => ({ ...prev, [name]: "" }));
     }
@@ -88,14 +101,12 @@ function ResetPassword() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
     if (isSubmitting) return;
 
     const errors = validate();
     if (Object.keys(errors).length > 0) {
       setFieldErrors(errors);
-      // Foco al primer campo con error
-      if (errors.password) passwordInputRef.current?.focus();
+      passwordInputRef.current?.focus();
       return;
     }
 
@@ -104,20 +115,14 @@ function ResetPassword() {
     setStatus("submitting");
 
     try {
-      const response = await fetch("/api/auth/reset-password", {
+      const response = await fetch(apiUrl("/api/reset-password"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, password: formData.password }),
+        body: JSON.stringify({ token, newPassword: formData.password }),
       });
 
-      if (response.status === 400 || response.status === 410) {
-        // Token expirado o ya usado
+      if (response.status === 400) {
         setStatus("expired_token");
-        return;
-      }
-
-      if (response.status === 404) {
-        setStatus("invalid_token");
         return;
       }
 
@@ -157,44 +162,24 @@ function ResetPassword() {
       </header>
 
       <main className="rp-wrapper" id="main-content">
-        <div className="rp-container" role="region" aria-label="Cambiar contraseña">
-
-          {/* Región aria-live para cambios de estado */}
-          <div
-            role="status"
-            aria-live="polite"
-            aria-atomic="true"
-            className="sr-only"
-          >
-            {status === "success" && "Contraseña cambiada con éxito."}
-            {status === "expired_token" && "El enlace ha expirado. Solicita uno nuevo."}
-            {status === "invalid_token" && "El enlace no es válido."}
-            {status === "network_error" && "Error de conexión. Intenta de nuevo."}
-            {status === "submitting" && "Guardando nueva contraseña..."}
-          </div>
-
-          {/* ── Validando token ── */}
+        <div className="rp-container" role="region" aria-label="Restablecer contraseña">
           {status === "validating" && (
-            <div className="rp-validating" role="status" aria-live="polite">
+            <div className="rp-validating" aria-live="polite" aria-atomic="true">
               <div className="rp-loader" aria-hidden="true"></div>
-              <p>Verificando enlace...</p>
+              <p>Validando enlace...</p>
             </div>
           )}
 
-          {/* ── Token inválido ── */}
           {status === "invalid_token" && (
-            <div className="rp-status-card rp-status-card--error">
-              <div className="rp-status-icon" aria-hidden="true">✕</div>
-              <h1
-                ref={headingRef}
-                className="rp-title"
-                tabIndex={-1}
-              >
-                ENLACE INVÁLIDO
+            <div className="rp-status-card rp-status-card--warning">
+              <span className="rp-status-icon" aria-hidden="true">
+                ⚠
+              </span>
+              <h1 className="rp-title" tabIndex={-1} ref={headingRef}>
+                Enlace inválido
               </h1>
               <p className="rp-description">
-                Este enlace no es válido o ya fue utilizado. Solicita uno nuevo
-                desde la pantalla de recuperación.
+                El enlace no es válido. Solicita uno nuevo para restablecer tu contraseña.
               </p>
               <button
                 type="button"
@@ -206,20 +191,16 @@ function ResetPassword() {
             </div>
           )}
 
-          {/* ── Token expirado ── */}
           {status === "expired_token" && (
             <div className="rp-status-card rp-status-card--warning">
-              <div className="rp-status-icon" aria-hidden="true">⏱</div>
-              <h1
-                ref={headingRef}
-                className="rp-title"
-                tabIndex={-1}
-              >
-                ENLACE EXPIRADO
+              <span className="rp-status-icon" aria-hidden="true">
+                ⏱
+              </span>
+              <h1 className="rp-title" tabIndex={-1} ref={headingRef}>
+                Enlace expirado
               </h1>
               <p className="rp-description">
-                Este enlace de restablecimiento ya expiró. Los enlaces son
-                válidos por un tiempo limitado por razones de seguridad.
+                El enlace ya expiró o fue utilizado. Solicita uno nuevo para continuar.
               </p>
               <button
                 type="button"
@@ -231,77 +212,55 @@ function ResetPassword() {
             </div>
           )}
 
-          {/* ── Éxito ── */}
+          {status === "network_error" && (
+            <div className="rp-status-card rp-status-card--error">
+              <span className="rp-status-icon" aria-hidden="true">
+                ⚠
+              </span>
+              <h1 className="rp-title" tabIndex={-1} ref={headingRef}>
+                Error de conexión
+              </h1>
+              <p className="rp-description">No se pudo conectar con el servidor. Intenta de nuevo.</p>
+              <button
+                type="button"
+                className="rp-btn rp-btn--primary"
+                onClick={() => window.location.reload()}
+              >
+                REINTENTAR
+              </button>
+            </div>
+          )}
+
           {status === "success" && (
             <div className="rp-status-card rp-status-card--success">
-              <div className="rp-status-icon" aria-hidden="true">✓</div>
-              <h1
-                ref={headingRef}
-                className="rp-title"
-                tabIndex={-1}
-              >
-                CONTRASEÑA ACTUALIZADA
+              <span className="rp-status-icon" aria-hidden="true">
+                ✓
+              </span>
+              <h1 className="rp-title" tabIndex={-1} ref={headingRef}>
+                Contraseña actualizada
               </h1>
-              <p className="rp-description">
-                Tu contraseña ha sido cambiada con éxito. Ya puedes iniciar
-                sesión con tu nueva contraseña.
-              </p>
+              <p className="rp-description">Ya puedes iniciar sesión con tu nueva contraseña.</p>
               <button
                 type="button"
                 className="rp-btn rp-btn--primary"
                 onClick={() => navigate("/login")}
               >
-                INICIAR SESIÓN
+                IR A INICIAR SESIÓN
               </button>
             </div>
           )}
 
-          {/* ── Error de red ── */}
-          {status === "network_error" && (
-            <div className="rp-status-card rp-status-card--error">
-              <div className="rp-status-icon" aria-hidden="true">⚠</div>
-              <h1
-                ref={headingRef}
-                className="rp-title"
-                tabIndex={-1}
-              >
-                ERROR DE CONEXIÓN
-              </h1>
-              <p className="rp-description">
-                No se pudo guardar la contraseña. Verifica tu conexión e
-                intenta de nuevo.
-              </p>
-              <button
-                type="button"
-                className="rp-btn rp-btn--primary"
-                onClick={() => setStatus("ready")}
-              >
-                INTENTAR DE NUEVO
-              </button>
-            </div>
-          )}
-
-          {/* ── Formulario (ready / submitting) ── */}
           {(status === "ready" || status === "submitting") && (
             <>
-              <div className="rp-icon-wrap" aria-hidden="true">🔒</div>
-              <h1
-                ref={headingRef}
-                className="rp-title"
-                tabIndex={-1}
-              >
-                NUEVA CONTRASEÑA
+              <div className="rp-icon-wrap" aria-hidden="true">
+                🔒
+              </div>
+              <h1 className="rp-title" tabIndex={-1} ref={headingRef}>
+                Restablecer contraseña
               </h1>
-              <p className="rp-description">
-                Crea una contraseña segura para tu cuenta.
-              </p>
+              <p className="rp-description">Crea una contraseña nueva para tu cuenta.</p>
 
-              <form
-                onSubmit={handleSubmit}
-                className="rp-form"
-                noValidate
-              >
-                {/* ── Campo nueva contraseña ── */}
+              <form className="rp-form" onSubmit={handleSubmit} noValidate>
                 <label htmlFor="rp-password" className="rp-label">
                   NUEVA CONTRASEÑA
                 </label>
@@ -313,19 +272,17 @@ function ResetPassword() {
                     name="password"
                     value={formData.password}
                     onChange={handleChange}
-                    placeholder="Crea tu contraseña"
+                    placeholder="Mínimo 8 caracteres"
                     autoComplete="new-password"
                     disabled={isSubmitting}
                     className={`rp-input${fieldErrors.password ? " rp-input--error" : ""}`}
                     aria-invalid={Boolean(fieldErrors.password)}
-                    aria-describedby={
-                      [
-                        fieldErrors.password ? "rp-password-error" : null,
-                        "rp-policy",
-                      ]
-                        .filter(Boolean)
-                        .join(" ") || undefined
-                    }
+                    aria-describedby={[
+                      fieldErrors.password ? "rp-password-error" : null,
+                      formData.password ? "rp-policy" : null,
+                    ]
+                      .filter(Boolean)
+                      .join(" ") || undefined}
                     aria-required="true"
                   />
                   <button
@@ -333,7 +290,6 @@ function ResetPassword() {
                     className="rp-toggle-pw"
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    tabIndex={0}
                   >
                     {showPassword ? "🙈" : "👁"}
                   </button>
@@ -344,13 +300,8 @@ function ResetPassword() {
                   </p>
                 )}
 
-                {/* ── Indicador de política de contraseña ── */}
                 {formData.password.length > 0 && (
-                  <ul
-                    id="rp-policy"
-                    className="rp-policy-list"
-                    aria-label="Requisitos de contraseña"
-                  >
+                  <ul id="rp-policy" className="rp-policy-list" aria-label="Requisitos de contraseña">
                     {policyRules.map((rule) => (
                       <li
                         key={rule.id}
@@ -366,7 +317,6 @@ function ResetPassword() {
                   </ul>
                 )}
 
-                {/* ── Campo confirmar contraseña ── */}
                 <label htmlFor="rp-confirm" className="rp-label">
                   CONFIRMAR CONTRASEÑA
                 </label>
@@ -382,9 +332,7 @@ function ResetPassword() {
                     disabled={isSubmitting}
                     className={`rp-input${fieldErrors.confirmPassword ? " rp-input--error" : ""}`}
                     aria-invalid={Boolean(fieldErrors.confirmPassword)}
-                    aria-describedby={
-                      fieldErrors.confirmPassword ? "rp-confirm-error" : undefined
-                    }
+                    aria-describedby={fieldErrors.confirmPassword ? "rp-confirm-error" : undefined}
                     aria-required="true"
                   />
                   <button
@@ -392,7 +340,6 @@ function ResetPassword() {
                     className="rp-toggle-pw"
                     onClick={() => setShowConfirm((v) => !v)}
                     aria-label={showConfirm ? "Ocultar confirmación" : "Mostrar confirmación"}
-                    tabIndex={0}
                   >
                     {showConfirm ? "🙈" : "👁"}
                   </button>
@@ -413,12 +360,7 @@ function ResetPassword() {
                 </button>
 
                 {isSubmitting && (
-                  <div
-                    className="rp-loader-wrapper"
-                    role="status"
-                    aria-live="polite"
-                    aria-atomic="true"
-                  >
+                  <div className="rp-loader-wrapper" role="status" aria-live="polite" aria-atomic="true">
                     <div className="rp-loader-spin" aria-hidden="true"></div>
                     <span className="rp-loader-text">Guardando contraseña...</span>
                     <span className="sr-only">Cargando</span>

@@ -2,7 +2,7 @@ import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi, beforeEach } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import RoleDashboard from "../pages/RoleDashboard/RoleDashboard";
-import { clearSession, setSession } from "../auth/session";
+import * as session from "../auth/session";
 
 /**
  * Tests de RoleDashboard
@@ -26,7 +26,7 @@ import { clearSession, setSession } from "../auth/session";
 describe("RoleDashboard", () => {
 
   afterEach(() => {
-    clearSession();
+    session.clearSession();
   });
 
   // ── Renders por rol ──────────────────────────────────────────────────

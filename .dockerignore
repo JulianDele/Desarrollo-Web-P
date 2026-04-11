@@ -1,0 +1,10 @@
+.git
+**/node_modules
+**/dist
+**/dist-ssr
+*.log
+Back-end/.env
+Investigaciones/
+Navegación avanzada y manejo de errores/
+DOM y componentes dinámicos accesibles/
+Comunicación asíncrona accesible/

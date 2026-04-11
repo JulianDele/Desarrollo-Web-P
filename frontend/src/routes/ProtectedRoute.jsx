@@ -1,12 +1,7 @@
 import { Navigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
-import {
-  listenLogout,
-  fetchWithAuth,
-  clearSession,
-  isSessionExpired,
-} from "../auth/session";
+import { listenLogout, fetchWithAuth, clearSession, isSessionExpired } from "../auth/session";
 
 /**
  * ProtectedRoute — guarda de autenticación.
@@ -23,7 +18,6 @@ function ProtectedRoute({ children }) {
   const [authStatus, setAuthStatus] = useState("checking"); // checking | ok | expired | error
 
   useEffect(() => {
-
     const checkSession = async () => {
 
       // Cortocircuito local: token ya expiró
@@ -45,24 +39,18 @@ function ProtectedRoute({ children }) {
         } else {
           setAuthStatus("error");
         }
-
       } catch {
         setAuthStatus("error");
       }
-
     };
 
     checkSession();
 
-    // Escuchar logout desde otras pestañas
     const stopListening = listenLogout(() => {
       window.location.href = "/login?reason=expired";
     });
 
-    return () => {
-      stopListening();
-    };
-
+    return () => stopListening();
   }, []);
 
   if (authStatus === "checking") {
