@@ -1,16 +1,16 @@
-﻿import { render, screen } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import RoleDashboard from "../pages/RoleDashboard/RoleDashboard";
-import { clearSession, setSession } from "../auth/session";
+import * as session from "../auth/session";
 
 describe("RoleDashboard", () => {
   afterEach(() => {
-    clearSession();
+    session.clearSession();
   });
 
   it("renders receptionist panel for recepcionista role", () => {
-    setSession({ token: "valid-token", role: "recepcionista" });
+    session.setSession({ accessToken: "valid-token", role: "recepcionista" });
 
     render(
       <MemoryRouter initialEntries={["/dashboard"]}>

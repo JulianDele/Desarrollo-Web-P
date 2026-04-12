@@ -1,5 +1,8 @@
-const TOKEN_KEY = "token";
+const TOKEN_KEY = "accessToken";
+const REFRESH_TOKEN_KEY = "refreshToken";
 const ROLE_KEY = "role";
+const SESSION_ID_KEY = "sessionId";
+const EXPIRES_KEY = "expiresAt";
 
 const ROLE_ALIASES = {
   admin: "admin",
@@ -14,6 +17,15 @@ const ROLE_ALIASES = {
   guest: "guest",
 };
 
+const API_BASE_URL = String(import.meta.env.VITE_API_URL || "").replace(/\/+$/, "");
+
+export function apiUrl(path) {
+  if (!path) return API_BASE_URL || "";
+  if (/^https?:\/\//i.test(path)) return path;
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return API_BASE_URL ? `${API_BASE_URL}${normalizedPath}` : normalizedPath;
+}
+
 export function normalizeRole(role) {
   if (!role || typeof role !== "string") {
     return "guest";
@@ -24,23 +36,30 @@ export function normalizeRole(role) {
 }
 
 export function getSession() {
-  const token = localStorage.getItem(TOKEN_KEY) || "";
-  const role = normalizeRole(localStorage.getItem(ROLE_KEY));
-
-  return { token, role };
+  return {
+    token: localStorage.getItem(TOKEN_KEY) || "",
+    refreshToken: localStorage.getItem(REFRESH_TOKEN_KEY) || "",
+    role: normalizeRole(localStorage.getItem(ROLE_KEY)),
+    sessionId: localStorage.getItem(SESSION_ID_KEY),
+    expiresAt: localStorage.getItem(EXPIRES_KEY),
+  };
 }
 
-export function setSession({ token, role }) {
-  if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
-  }
-
-  localStorage.setItem(ROLE_KEY, normalizeRole(role));
+export function setSession({ accessToken, refreshToken, role, sessionId, expiresAt }) {
+  if (accessToken) localStorage.setItem(TOKEN_KEY, accessToken);
+  if (refreshToken) localStorage.setItem(REFRESH_TOKEN_KEY, refreshToken);
+  if (sessionId) localStorage.setItem(SESSION_ID_KEY, sessionId);
+  if (role) localStorage.setItem(ROLE_KEY, normalizeRole(role));
+  if (expiresAt) localStorage.setItem(EXPIRES_KEY, expiresAt);
 }
 
 export function clearSession() {
   localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(REFRESH_TOKEN_KEY);
   localStorage.removeItem(ROLE_KEY);
+  localStorage.removeItem(SESSION_ID_KEY);
+  localStorage.removeItem(EXPIRES_KEY);
+  notifyLogout();
 }
 
 export function hasSession() {
@@ -50,13 +69,75 @@ export function hasSession() {
 export function getDefaultRouteByRole(role) {
   const normalizedRole = normalizeRole(role);
 
-  if (normalizedRole === "admin") {
-    return "/admin/dashboard";
-  }
-
-  if (normalizedRole === "recepcionista" || normalizedRole === "cliente") {
-    return "/dashboard";
-  }
-
+  if (normalizedRole === "admin") return "/admin/dashboard";
+  if (normalizedRole === "recepcionista" || normalizedRole === "cliente") return "/dashboard";
   return "/";
+}
+
+export function notifyLogout() {
+  localStorage.setItem("logout-event", Date.now());
+}
+
+export function listenLogout(callback) {
+  const handler = (event) => {
+    if (event.key === "logout-event") callback();
+  };
+
+  window.addEventListener("storage", handler);
+  return () => window.removeEventListener("storage", handler);
+}
+
+export function getSessionExpiry() {
+  return localStorage.getItem(EXPIRES_KEY);
+}
+
+export function isSessionExpired() {
+  const expiresAt = getSessionExpiry();
+  if (!expiresAt) return false;
+  return new Date().getTime() > new Date(expiresAt).getTime();
+}
+
+export async function fetchWithAuth(url, options = {}) {
+  let token = localStorage.getItem(TOKEN_KEY);
+  const refreshToken = localStorage.getItem(REFRESH_TOKEN_KEY);
+
+  let response = await fetch(apiUrl(url), {
+    ...options,
+    headers: {
+      ...(options.headers || {}),
+      Authorization: `Bearer ${token}`,
+    },
+    credentials: "include",
+  });
+
+  if (response.status === 401) {
+    const refreshRes = await fetch(apiUrl("/api/refresh"), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify({ refreshToken }),
+    });
+
+    if (refreshRes.ok) {
+      const data = await refreshRes.json().catch(() => ({}));
+      if (data.accessToken) {
+        localStorage.setItem(TOKEN_KEY, data.accessToken);
+        token = data.accessToken;
+      }
+
+      response = await fetch(apiUrl(url), {
+        ...options,
+        headers: {
+          ...(options.headers || {}),
+          Authorization: `Bearer ${token}`,
+        },
+        credentials: "include",
+      });
+    } else {
+      clearSession();
+      window.location.href = "/login";
+    }
+  }
+
+  return response;
 }

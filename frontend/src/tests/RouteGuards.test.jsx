@@ -1,9 +1,9 @@
-﻿import { render, screen } from "@testing-library/react";
-import { afterEach, describe, expect, it } from "vitest";
+import { render, screen } from "@testing-library/react";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "../routes/ProtectedRoute";
 import RoleRoute from "../routes/RoleRoute";
-import { clearSession, setSession } from "../auth/session";
+import * as session from "../auth/session";
 
 function AppUnderTest() {
   return (
@@ -33,8 +33,17 @@ function AppUnderTest() {
 }
 
 describe("Route guards", () => {
+  beforeEach(() => {
+    vi.spyOn(session, "fetchWithAuth").mockResolvedValue({
+      ok: false,
+      status: 401,
+      json: async () => ({}),
+    });
+  });
+
   afterEach(() => {
-    clearSession();
+    session.clearSession();
+    vi.restoreAllMocks();
   });
 
   it("redirects unauthenticated users to login for private routes", () => {
@@ -48,7 +57,12 @@ describe("Route guards", () => {
   });
 
   it("allows authenticated users into private routes", () => {
-    setSession({ token: "valid-token", role: "cliente" });
+    session.setSession({ accessToken: "valid-token", role: "cliente" });
+    session.fetchWithAuth.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { role: "cliente" } }),
+    });
 
     render(
       <MemoryRouter initialEntries={["/private"]}>
@@ -59,8 +73,13 @@ describe("Route guards", () => {
     expect(screen.getByText("Private View")).not.toBeNull();
   });
 
-  it("redirects non-admin roles away from admin routes", () => {
-    setSession({ token: "valid-token", role: "cliente" });
+  it("blocks non-admin roles from admin routes", () => {
+    session.setSession({ accessToken: "valid-token", role: "cliente" });
+    session.fetchWithAuth.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { role: "cliente" } }),
+    });
 
     render(
       <MemoryRouter initialEntries={["/admin"]}>
@@ -68,11 +87,18 @@ describe("Route guards", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByText("User Dashboard")).not.toBeNull();
+    expect(
+      screen.getByText("No tienes permisos para acceder a esta sección.")
+    ).not.toBeNull();
   });
 
   it("allows admin role into admin routes", () => {
-    setSession({ token: "valid-token", role: "admin" });
+    session.setSession({ accessToken: "valid-token", role: "admin" });
+    session.fetchWithAuth.mockResolvedValue({
+      ok: true,
+      status: 200,
+      json: async () => ({ user: { role: "admin" } }),
+    });
 
     render(
       <MemoryRouter initialEntries={["/admin"]}>

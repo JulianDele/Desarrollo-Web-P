@@ -1,76 +1,47 @@
-# Documentación de Seguridad y Entorno
+# Seguridad: AutenticaciÃ³n, AutorizaciÃ³n y RecuperaciÃ³n de ContraseÃ±a
 
-## Variables de entorno requeridas
+## ProtecciÃ³n por rol (Backend)
+- Todas las rutas sensibles deben usar `requireAuth` y, cuando aplique, `requireRole`.
+- `requireAuth` valida:
+  - Firma y expiraciÃ³n del JWT.
+  - Tipo de token (`access` vs `refresh`).
+  - SesiÃ³n activa y no expirada (en Mongo si estÃ¡ conectado; si no, fallback en memoria para dev/tests).
+  - El rol no se toma del payload del token: se obtiene del usuario en el servidor (evita escalaciÃ³n por manipulaciÃ³n local del cliente).
+- Respuestas estandarizadas:
+  - `401` para no autenticado (`{ error: "No autenticado" }`)
+  - `403` para acceso denegado (`{ error: "Sin permisos" }`)
 
-Copia `.env.example` y renómbralo `.env` en la raíz y en `Back-end/`:
+## RecuperaciÃ³n de contraseÃ±a (Backend)
+Amenazas consideradas:
+- EnumeraciÃ³n de cuentas (respuesta distinta si existe/no existe).
+- Replay (reutilizaciÃ³n de token).
+- Brute force (fuerza bruta de token / abuso de endpoints).
+- Robo de token (filtraciÃ³n en logs, referers, historial, etc.).
 
-| Variable | Descripción | Ejemplo |
-|---|---|---|
-| JWT_SECRET | Clave secreta para tokens JWT | cadena larga y aleatoria |
-| REFRESH_SECRET | Clave para refresh tokens | cadena larga y aleatoria |
-| RESET_TOKEN_SECRET | Clave para tokens de reset | cadena larga y aleatoria |
-| RESET_TOKEN_TTL | Tiempo de expiración del reset token | 15m |
-| DB_URI | URI de conexión a MongoDB | mongodb://mongo:27017/gymdb |
-| REDIS_URI | URI de conexión a Redis | redis://redis:6379 |
-| MAIL_HOST | Servidor SMTP | smtp.gmail.com |
-| MAIL_PORT | Puerto SMTP | 587 |
-| MAIL_USER | Correo Gmail del proyecto | correo@gmail.com |
-| MAIL_PASS | Contraseña de aplicación Gmail | clave de 16 caracteres |
-| MAIL_FROM | Correo remitente | correo@gmail.com |
-| FRONTEND_URL | URL del frontend en producción | https://mi-frontend.com |
-| APP_URL | URL base del backend | http://localhost:3000 |
+Controles implementados:
+- `POST /api/forgot-password` responde siempre con mensaje neutral.
+- Token criptogrÃ¡fico aleatorio y de un solo uso.
+- ExpiraciÃ³n corta configurable con `RESET_TOKEN_TTL_MINUTES` (default 15).
+- Se guarda el token hasheado (SHA-256 con `RESET_TOKEN_SECRET`).
+- `POST /api/reset-password/validate` valida sin revelar informaciÃ³n sensible.
+- `POST /api/reset-password` cambia contraseÃ±a (bcrypt) y revoca sesiones activas.
+- Rate limit aplicado en endpoints crÃ­ticos con `rateLimitPassword`.
 
-## Levantar el entorno
-```bash
-docker-compose up --build
-```
+## Frontend (guards + UX)
+- `ProtectedRoute` consulta `GET /api/session` antes de renderizar vistas protegidas.
+- Las llamadas a recursos privados deben pasar por `fetchWithAuth`.
+- En despliegue con frontend separado (Render Static Site), el frontend usa `VITE_API_URL` para apuntar al backend.
 
-## Verificar que el servidor está sano
-```bash
-curl http://localhost:3000/api/health
-```
+## DevOps / despliegue
+Variables crÃ­ticas (producciÃ³n):
+- `JWT_SECRET`
+- `RESET_TOKEN_SECRET`
+- `MONGO_URI` (o `DB_URI`)
+- `CORS_ORIGIN` (URL del frontend)
 
-## Ejecutar pruebas de seguridad manualmente
+Logs:
+- `Back-end/logs/app.log`: requests generales (con status y duraciÃ³n).
+- `Back-end/logs/security.log`: eventos `401/403` (para monitoreo de abuso).
 
-### Verificar headers de seguridad (helmet)
-```bash
-curl -I http://localhost:3000/api/health
-```
-Debes ver headers como `Strict-Transport-Security`, `X-Frame-Options`, `Content-Security-Policy`.
-
-### Verificar monitoreo de eventos 401/403
-Hacer 5+ peticiones no autorizadas activa la alerta de posible ataque:
-```bash
-curl http://localhost:3000/api/auth/login
-```
-Revisar logs:
-```bash
-docker logs backend_app
-```
-
-### Verificar logs de seguridad en archivo
-```bash
-docker exec backend_app cat logs/security.log
-```
-
-## Archivos de log generados
-
-| Archivo | Contenido |
-|---|---|
-| `logs/app.log` | Todos los requests con método, URL, status y tiempo |
-| `logs/security.log` | Solo eventos 401, 403 y alertas de ataques |
-
-## Headers de seguridad activos (helmet)
-
-- `Content-Security-Policy` — protege contra XSS
-- `Strict-Transport-Security` — fuerza HTTPS
-- `X-Frame-Options` — protege contra clickjacking
-- `X-Content-Type-Options` — evita MIME sniffing
-- `Referrer-Policy` — controla información de referrer
-
-## Notas para el equipo
-
-- El archivo `.env` nunca debe subirse a GitHub (está en `.gitignore`)
-- En producción cambiar `NODE_ENV=production` activa HTTPS obligatorio y logs JSON estructurados
-- El pipeline de CI hace smoke test automático a `/api/health` en cada push
-- Cuando el billing de GitHub Actions se resuelva, el pipeline correrá completo
+Nota:
+- Se recomienda agregar `helmet` para headers de seguridad una vez que se actualicen dependencias y `package-lock.json` en el entorno de build.

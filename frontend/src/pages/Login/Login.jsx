@@ -3,7 +3,7 @@ import { useEffect, useState } from "react";
 import "./Login.css";
 import gymLogo from "../../assets/gym.png";
 import loginHeroImage from "../../assets/imagen2.jpg";
-import { getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
+import { apiUrl, getDefaultRouteByRole, getSession, setSession } from "../../auth/session";
 import TopNavigation from "../../components/TopNavigation";
 
 function Login() {
@@ -74,7 +74,7 @@ function Login() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/login", {
+      const response = await fetch(apiUrl("/api/login"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -84,19 +84,39 @@ function Login() {
 
       const data = await response.json().catch(() => ({}));
 
+      if (response.status === 401) {
+        setServerError("Credenciales inválidas");
+        return;
+      }
+
       if (!response.ok) {
         setServerError(data.message || "No se pudo iniciar sesión");
         return;
       }
 
-      if (!data.token) {
+      if (!data.accessToken) {
         setServerError("Respuesta inválida del servidor");
         return;
       }
 
-      const serverRole = data.role || data.user?.role || "guest";
-      setSession({ token: data.token, role: serverRole });
-      navigate(getDefaultRouteByRole(serverRole), { replace: true });
+      const serverRole =
+        data.role ||
+        data.user?.role ||
+        "guest";
+
+      setSession({
+        accessToken: data.accessToken,
+        refreshToken: data.refreshToken,
+        role: serverRole,
+        sessionId: data.sessionId,
+        expiresAt: data.expiresAt,
+      });
+
+      navigate(
+        getDefaultRouteByRole(serverRole),
+        { replace: true }
+      );
+
     } catch {
       setServerError("No se pudo conectar con el servidor");
     } finally {
@@ -155,7 +175,7 @@ function Login() {
     setIsRegisterSubmitting(true);
 
     try {
-      const response = await fetch("/api/register", {
+      const response = await fetch(apiUrl("/api/register"), {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -175,10 +195,26 @@ function Login() {
         return;
       }
 
-      if (data.token) {
-        const serverRole = data.role || data.user?.role || "user";
-        setSession({ token: data.token, role: serverRole });
-        navigate(getDefaultRouteByRole(serverRole), { replace: true });
+      if (data.accessToken) {
+
+        const serverRole =
+          data.role ||
+          data.user?.role ||
+          "user";
+
+        setSession({
+          accessToken: data.accessToken,
+          refreshToken: data.refreshToken,
+          role: serverRole,
+          sessionId: data.sessionId,
+          expiresAt: data.expiresAt,
+        });
+
+        navigate(
+          getDefaultRouteByRole(serverRole),
+          { replace: true }
+        );
+
         return;
       }
 
@@ -404,6 +440,17 @@ function Login() {
                   </p>
                 )}
               </form>
+
+
+              <div className="login-forgot-wrap">
+                <button
+                  type="button"
+                  className="login-switch-btn"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
 
               <div className="login-register-cta">
                 <p>¿No tienes cuenta?</p>

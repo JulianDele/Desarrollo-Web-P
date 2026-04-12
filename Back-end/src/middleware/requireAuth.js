@@ -1,17 +1,49 @@
+const mongoose = require('mongoose');
+const Session = require('../models/Session');
+const sessionStore = require('../utils/sessionStore');
 const { verifyToken } = require('../utils/token');
+const users = require('../data/users');
+const responses = require('../utils/responses');
 
-module.exports = (req, res, next) => {
+function getBearerToken(req) {
+  const authHeader = req.headers.authorization || '';
+  const [scheme, token] = authHeader.split(' ');
+  if (scheme !== 'Bearer' || !token) return null;
+  return token;
+}
 
-    const authHeader = req.headers.authorization;
-    if (!authHeader) {
-        return res.status(401).json({ message: "No autorizado" });
+module.exports = async (req, res, next) => {
+  const token = getBearerToken(req);
+  if (!token) return responses.unauthorized(res);
+
+  try {
+    const decoded = verifyToken(token);
+
+    if (decoded.type !== 'access') {
+      return responses.unauthorized(res);
     }
-    const token = authHeader.split(" ")[1];
-    try {
-        const decoded = verifyToken(token);
-        req.user = decoded;
-        next();
-    } catch (error) {
-        return res.status(401).json({ message: "Token inválido" });
+
+    const useDatabase = mongoose.connection.readyState === 1;
+    const session = useDatabase ? await Session.findOne({ tokenHash: token }) : sessionStore.getSessionByToken(token);
+
+    if (!session || !session.isActive) {
+      return responses.unauthorized(res);
     }
+
+    if (new Date() > session.expiresAt) {
+      return responses.unauthorized(res);
+    }
+
+    const user = users.find((u) => u.id === decoded.id);
+    if (!user) {
+      return responses.unauthorized(res);
+    }
+
+    // Avoid privilege escalation: do not trust token payload beyond user id.
+    req.user = { id: user.id, role: user.role };
+    req.session = session;
+    return next();
+  } catch {
+    return responses.unauthorized(res);
+  }
 };

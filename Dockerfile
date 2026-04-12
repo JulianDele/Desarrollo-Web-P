@@ -1,28 +1,17 @@
 FROM node:22-alpine
 
-WORKDIR /app
-
-COPY . .
-
-# Backend deps
 WORKDIR /app/Back-end
-RUN npm install
 
-# Frontend deps + build
-WORKDIR /app/frontend
-RUN npm install
-RUN npm run build
+COPY Back-end/package*.json ./
+RUN npm ci --omit=dev
 
-# Production mode
+COPY Back-end ./
+
 ENV NODE_ENV=production
 
-# Volver backend
-WORKDIR /app/Back-end
-
-# Healthcheck automático del contenedor
-HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
-    CMD wget -qO- http://localhost:3000/api/health || exit 1
-
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=3s --start-period=20s --retries=3 \
+  CMD node -e "const http=require('http');const port=process.env.PORT||3000;http.get({host:'127.0.0.1',port,path:'/api/health'},r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1));"
 
 CMD ["node", "server.js"]
