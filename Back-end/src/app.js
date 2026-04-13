@@ -1,61 +1,71 @@
-const express = require('express');
+const express = require('express'); 
 const cors = require('cors');
 
 const authRoutes = require('./routes/authRoutes');
 const requireAuth = require('./middleware/requireAuth');
 
 const app = express();
+
 app.use(express.json());
+
+const allowedOrigin = process.env.CORS_ORIGIN;
+
 app.use(cors({
-    origin: "http://localhost:3000",
+    origin: (origin, callback) => {
+        if (!origin || origin === allowedOrigin) {
+            callback(null, true);
+        } else {
+            callback(new Error("No permitido por CORS"));
+        }
+    },
     credentials: true
 }));
-// Rutas de autenticación
+
 app.use('/api', authRoutes);
-//http 200
 app.get('/api/items', requireAuth, (req, res) =>{
-    res.json([{ id: 1, name: 'Elemento A', status: 'Activo'}, { id: 2, name: 'Elemento B', status: 'Inactivo'}]);
-})
+    res.json([
+        { id: 1, name: 'Elemento A', status: 'Activo'}, 
+        { id: 2, name: 'Elemento B', status: 'Inactivo'}
+    ]);
+});
 app.get('/api/error', (req, res) =>{
     res.status(500).json({ message: 'Error interno del servidor' });
-})
+});
 app.get('/api/state-ok', (req, res) => {
     res.json({ status: 'activo', selected: true });
 });
 app.get('/api/state-error', (req, res) => {
     res.status(500).json({ status: 'error', message: 'fallo al cambiar el estado' });
 });
-// Simula una respuesta 200 con retraso para probar el manejo de tiempos de espera
+// delay
 app.get('/api/items-delay', requireAuth, (req, res) => {
     setTimeout(() => {
-        res.json([{ id: 1, name: 'Elemento A', status: 'Activo'}, { id: 2, name: 'Elemento B', status: 'Inactivo'}]);
+        res.json([
+            { id: 1, name: 'Elemento A', status: 'Activo'}, 
+            { id: 2, name: 'Elemento B', status: 'Inactivo'}
+        ]);
     }, 2000);
 });
-// Simula un error de red para probar el manejo de errores de red
 app.get('/api/network-error', (req, res) => {
     res.status(503).json({ message: 'servicio no disponible'});
 });
-// Simula una respuesta intermitente para probar el manejo de errores intermitentes
 app.get('/api/flaky', (req, res) => {
     const falla = Math.random() < 0.5;
-    if ( falla) {
+    if (falla) {
         res.status(500).json({ message: 'error en el servidor' });
     } else {
         res.json({ data: 'datos cargados correctamente' });
     } 
 });
-// error 400 controlado para el cliente
 app.get('/api/bad-request', (req, res) => {
     res.status(400).json({ message: 'solicitud invalida'});
 });
-// error 404 controlado
 app.get('/api/not-found', (req, res) => {
     res.status(404).json({ message: 'recurso no encontrado'});
 });
-// estado del servidor (health check)
+// health check
 app.get('/api/health', (req, res) => {
     res.json({ status: 'ok', message: 'servicio activo' });
 });
 
 module.exports = app;
-
