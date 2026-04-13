@@ -1,17 +1,15 @@
+require('dotenv').config();
 const request = require('supertest');
 const app = require('../app');
 const jwt = require('jsonwebtoken');
 
-describe('Auth API Tests', () => {
-
-  const user = {
+const user = {
     email: "test@test.com",
     password: "123456",
     role: "user"
   };
-
+describe('Auth API Tests', () => {
   let accessToken;
-
   // Registro
   test('Registro exitoso', async () => {
     const res = await request(app)
@@ -98,7 +96,7 @@ describe('Auth API Tests', () => {
     expect(res.statusCode).toBe(403);
   });
 
-  // Concurrencia 
+  // Concurrencia (2 sesiones)
   test('Dos logins crean dos sesiones', async () => {
     const res1 = await request(app)
       .post('/api/login')
@@ -112,7 +110,7 @@ describe('Auth API Tests', () => {
     expect(res2.body.accessToken).toBeDefined();
   });
 
-  // Revocación 
+  // Revocación (logout)
   test('Logout invalida la sesión', async () => {
     const login = await request(app)
       .post('/api/login')
@@ -130,10 +128,9 @@ describe('Auth API Tests', () => {
 
     expect(res.statusCode).toBe(401);
   });
-
 });
 
-// Forgot password 
+// Forgot password (respuesta neutral)
 test('Forgot password responde neutral', async () => {
   const res = await request(app)
     .post('/api/forgot-password')
