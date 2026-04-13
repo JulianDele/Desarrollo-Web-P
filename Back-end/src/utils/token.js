@@ -1,9 +1,17 @@
 const jwt = require('jsonwebtoken');
 
-const SECRET = process.env.JWT_SECRET;
+const ACCESS_SECRET = process.env.JWT_SECRET;
+const REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
 
-if (!SECRET) {
-    throw new Error("JWT_SECRET no está definido en variables de entorno");
+const ACCESS_EXPIRES = process.env.JWT_EXPIRES_IN || "1h";
+const REFRESH_EXPIRES = process.env.JWT_REFRESH_EXPIRES_IN || "7d";
+
+if (!ACCESS_SECRET || !REFRESH_SECRET) {
+    if (process.env.NODE_ENV === "production") {
+        throw new Error("JWT secrets son obligatorios en producción");
+    } else {
+        console.warn("JWT secrets no definidos correctamente");
+    }
 }
 exports.generateToken = (user) => {
     return jwt.sign(
@@ -12,12 +20,12 @@ exports.generateToken = (user) => {
             role: user.role,
             type: "access"
         },
-        SECRET,
-        { expiresIn: "1h" }
+        ACCESS_SECRET,
+        { expiresIn: ACCESS_EXPIRES }
     );
 };
 exports.verifyToken = (token) => {
-    return jwt.verify(token, SECRET);
+    return jwt.verify(token, ACCESS_SECRET);
 };
 exports.generateRefreshToken = (user) => {
     return jwt.sign(
@@ -25,7 +33,10 @@ exports.generateRefreshToken = (user) => {
             id: user.id,
             type: "refresh"
         },
-        SECRET,
-        { expiresIn: "7d" }
+        REFRESH_SECRET,
+        { expiresIn: REFRESH_EXPIRES }
     );
+};
+exports.verifyRefreshToken = (token) => {
+    return jwt.verify(token, REFRESH_SECRET);
 };
