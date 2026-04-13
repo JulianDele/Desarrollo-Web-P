@@ -1,24 +1,26 @@
 const bcrypt = require('bcryptjs');
-const { generateToken, generateRefreshToken, verifyToken } = require('../utils/token');
+const { generateToken, generateRefreshToken, verifyRefreshToken } = require('../utils/token');
 const Session = require('../models/Session');
 const crypto = require('crypto');
 const users = require('../data/users');
+const responses = require('../utils/responses');
 
 const ROLES = {
     ADMIN: "admin",
     RECEPCIONISTA: "recepcionista",
     CLIENTE: "cliente"
 };
+
 // Registro
 exports.register = async (req, res) => {
     try {
-        const { email, password, } = req.body;
+        const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({ message: "Datos inválidos" });
+            return responses.badRequest(res, "Datos inválidos");
         }
         const existingUser = users.find(u => u.email === email);
         if (existingUser) {
-            return res.status(400).json({ message: "Usuario ya existe" });
+            return responses.badRequest(res, "Usuario ya existe");
         }
         const hashedPassword = await bcrypt.hash(password, 10);
         const newUser = {
@@ -28,54 +30,53 @@ exports.register = async (req, res) => {
             role: ROLES.CLIENTE
         };
         users.push(newUser);
-        res.json({ message: "Usuario registrado correctamente" });
+        return responses.success(res, {
+            user: { id: newUser.id, email: newUser.email }
+        }, "Usuario registrado correctamente");
     } catch (error) {
         console.error("ERROR REGISTER:", error);
-        res.status(500).json({ message: "Error del servidor" });
+        return responses.serverError(res);
     }
 };
-
 // Login
 exports.login = async (req, res) => {
     try {
         const { email, password } = req.body;
         if (!email || !password) {
-            return res.status(400).json({ message: "Credenciales inválidas" });
+            return responses.badRequest(res, "Credenciales inválidas");
         }
         const user = users.find(u => u.email === email);
         if (!user) {
-            return res.status(401).json({ message: "Credenciales inválidas" });
+            return responses.unauthorized(res, "Credenciales inválidas");
         }
         const validPassword = await bcrypt.compare(password, user.password);
         if (!validPassword) {
-            return res.status(401).json({ message: "Credenciales inválidas" });
+            return responses.unauthorized(res, "Credenciales inválidas");
         }
         const accessToken = generateToken(user);
         const refreshToken = generateRefreshToken(user);
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000);
-        res.json({
-            message: "Login exitoso",
+        return responses.success(res, {
             user: { id: user.id, email: user.email },
             role: user.role,
             expiresAt,
             accessToken,
             refreshToken
-        });
-    } catch (error){
-        console.error("ERROR REGISTER:", error);
-        res.status(500).json({ message: "Error del servidor" });
+        }, "Login exitoso");
+    } catch (error) {
+        console.error("ERROR LOGIN:", error);
+        return responses.serverError(res);
     }
 };
 // Logout
 exports.logout = async (req, res) => {
     try {
-        await Session.findByIdAndUpdate(req.session._id, { isActive: false });
-        res.json({ message: "Logout exitoso" });
+        await Session.findByIdAndUpdate(req.session?._id, { isActive: false });
+        return responses.success(res, {}, "Logout exitoso");
     } catch {
-        res.status(500).json({ message: "Error del servidor" });
+        return responses.serverError(res);
     }
 };
-
 // logout-all
 exports.logoutAll = async (req, res) => {
     try {
@@ -83,16 +84,15 @@ exports.logoutAll = async (req, res) => {
             { userId: req.user.id },
             { isActive: false }
         );
-        res.json({ message: "Todas las sesiones cerradas" });
+        return responses.success(res, {}, "Todas las sesiones cerradas");
     } catch {
-        res.status(500).json({ message: "Error del servidor" });
+        return responses.serverError(res);
     }
 };
-
+// sesión actual
 exports.session = (req, res) => {
-    res.json({ user: req.user });
+    return responses.success(res, { user: req.user }, "Sesión activa");
 };
-
 // lista de sesiones
 exports.sessions = async (req, res) => {
     try {
@@ -100,37 +100,37 @@ exports.sessions = async (req, res) => {
             userId: req.user.id,
             isActive: true
         });
-        res.json(sessions);
+        return responses.success(res, sessions, "Sesiones activas");
     } catch {
-        res.status(500).json({ message: "Error del servidor" });
+        return responses.serverError(res);
     }
 };
-
 // Refresh token
 exports.refresh = async (req, res) => {
     try {
         const { refreshToken } = req.body;
         if (!refreshToken) {
-            return res.status(400).json({ message: "Refresh requerido" });
+            return responses.badRequest(res, "Refresh requerido");
         }
-        const decoded = verifyToken(refreshToken);
+        const decoded = verifyRefreshToken(refreshToken);
         if (decoded.type !== "refresh") {
-            return res.status(401).json({ message: "Token inválido" });
-      }
+            return responses.unauthorized(res, "Token inválido");
+        }
         const newAccessToken = generateToken(decoded);
-        res.json({ accessToken: newAccessToken });
+        return responses.success(res, {
+            accessToken: newAccessToken
+        }, "Token renovado");
     } catch {
-        res.status(401).json({ message: "Refresh inválido" });
+        return responses.unauthorized(res, "Refresh inválido o expirado");
     }
 };
-
 // Forgot password
 exports.forgotPassword = async (req, res) => {
     try {
         const { email } = req.body;
         const message = "Si el correo existe, se enviará un enlace";
         if (!email) {
-            return res.json({ message });
+            return responses.success(res, {}, message);
         }
         const user = users.find(u => u.email === email);
         if (user) {
@@ -140,22 +140,21 @@ exports.forgotPassword = async (req, res) => {
                 .update(resetToken)
                 .digest("hex");
             user.resetToken = hashedToken;
-            user.resetTokenExpires = Date.now() + 15 * 60 * 1000; 
+            user.resetTokenExpires = Date.now() + 15 * 60 * 1000;
             console.log("TOKEN (simulación email):", resetToken);
         }
-        return res.json({ message });
-    } catch (error) {
-        return res.json({ message: "Si el proceso es válido, se completará" });
+        return responses.success(res, {}, message);
+    } catch {
+        return responses.success(res, {}, "Si el proceso es válido, se completará");
     }
 };
-
 // Validación de reset token
 exports.validateResetToken = async (req, res) => {
     try {
         const { token } = req.body;
         const message = "Solicitud procesada";
         if (!token) {
-            return res.json({ valid: false, message });
+            return responses.success(res, { valid: false }, message);
         }
         const hashedToken = crypto
             .createHash("sha256")
@@ -166,21 +165,20 @@ exports.validateResetToken = async (req, res) => {
             u.resetTokenExpires > Date.now()
         );
         if (!user) {
-            return res.json({ valid: false, message });
+            return responses.success(res, { valid: false }, message);
         }
-        return res.json({ valid: true, message });
-    } catch (error) {
-        return res.json({ valid: false, message: "Solicitud procesada" });
+        return responses.success(res, { valid: true }, message);
+    } catch {
+        return responses.success(res, { valid: false }, "Solicitud procesada");
     }
 };
-
 // Reset password
 exports.resetPassword = async (req, res) => {
     try {
         const { token, newPassword } = req.body;
         const message = "Si el proceso es válido, la contraseña fue actualizada";
         if (!token || !newPassword) {
-            return res.json({ message });
+            return responses.success(res, {}, message);
         }
         const hashedToken = crypto
             .createHash("sha256")
@@ -191,17 +189,17 @@ exports.resetPassword = async (req, res) => {
             u.resetTokenExpires > Date.now()
         );
         if (user) {
-            // Hash de nueva contraseña (bcrypt)
             user.password = await bcrypt.hash(newPassword, 10);
             user.resetToken = null;
             user.resetTokenExpires = null;
+
             await Session.updateMany(
                 { userId: user.id },
                 { isActive: false }
             );
         }
-        return res.json({ message });
-    } catch (error) {
-        return res.json({ message: "Si el proceso es válido, se completará" });
+        return responses.success(res, {}, message);
+    } catch {
+        return responses.success(res, {}, "Si el proceso es válido, se completará");
     }
 };
