@@ -32,7 +32,9 @@ Copia `.env.example` y crea tu `.env` (local). En producción (Render) configura
 | Variable | Descripción | Ejemplo |
 |---|---|---|
 | `JWT_SECRET` | Clave secreta para access tokens | cadena larga y aleatoria |
-| `REFRESH_SECRET` | Clave para refresh tokens | cadena larga y aleatoria |
+| `REFRESH_SECRET` | Clave para refresh tokens (alias) | cadena larga y aleatoria |
+| `JWT_REFRESH_SECRET` | Refresh secret (preferido) | cadena larga y aleatoria |
+| `TOKEN_EXPIRATION` | Expiración access token | `15m` |
 | `RESET_TOKEN_SECRET` | Clave para hashear tokens de reset | cadena larga y aleatoria |
 | `RESET_TOKEN_TTL_MINUTES` | Expiración de reset token | `15` |
 | `MONGO_URI` | URI Mongo (principal) | `mongodb://mongo:27017/gymdb` |
@@ -53,7 +55,7 @@ Copia `.env.example` y crea tu `.env` (local). En producción (Render) configura
 
 ## Healthcheck
 - Endpoint: `GET /api/health`
-- Dockerfile incluye `HEALTHCHECK` que consulta ese endpoint.
+- `Dockerfile` incluye `HEALTHCHECK` que consulta ese endpoint.
 
 ## Levantar entorno local
 ```bash
@@ -64,3 +66,4 @@ Verificar salud:
 ```bash
 curl http://localhost:3000/api/health
 ```
+
