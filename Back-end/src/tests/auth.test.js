@@ -81,7 +81,9 @@ describe('Auth API Tests', () => {
   test('Admin puede acceder a ruta admin', async () => {
     const adminUser = { email: 'admin@test.com', password: '123456', role: 'admin' };
     await request(app).post('/api/register').send(adminUser);
-    const login = await request(app).post('/api/login').send({ email: adminUser.email, password: adminUser.password });
+    const login = await request(app)
+      .post('/api/login')
+      .send({ email: adminUser.email, password: adminUser.password });
 
     const res = await request(app).get('/api/admin').set('Authorization', `Bearer ${login.body.accessToken}`);
     expect(res.statusCode).toBe(200);
@@ -145,3 +147,4 @@ describe('Auth API Tests', () => {
     expect(loginNew.statusCode).toBe(200);
   });
 });
+

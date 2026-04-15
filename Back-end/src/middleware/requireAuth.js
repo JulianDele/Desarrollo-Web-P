@@ -47,3 +47,4 @@ module.exports = async (req, res, next) => {
     return responses.unauthorized(res);
   }
 };
+
