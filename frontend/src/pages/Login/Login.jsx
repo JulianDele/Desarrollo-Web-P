@@ -7,15 +7,19 @@ import { apiUrl, getDefaultRouteByRole, getSession, setSession } from "../../aut
 import TopNavigation from "../../components/TopNavigation";
 
 /**
- * Mensajes de UX para 401 y 403 segÃºn ?reason= en la URL:
- *  ?reason=expired   -> sesiÃ³n expirada (401)
- *  ?reason=forbidden -> acceso denegado (403)
- *  ?reason=error     -> error inesperado
+ * Mensajes de UX para 401 y 403 según ?reason= en la URL:
+ *
+ *  ?reason=expired  → sesión expirada (401) — el usuario debe volver a autenticarse
+ *  ?reason=forbidden → acceso denegado (403) — el rol no tiene permisos para esa ruta
+ *  ?reason=error    → error inesperado del servidor
+ *
+ * Estos mensajes son informativos y nunca exponen detalles técnicos al usuario.
  */
+
 const REASON_MESSAGES = {
-  expired: "Tu sesiÃ³n ha expirado. Por favor inicia sesiÃ³n nuevamente.",
-  forbidden: "No tienes permisos para acceder a esa secciÃ³n.",
-  error: "OcurriÃ³ un error inesperado. Por favor inicia sesiÃ³n nuevamente.",
+  expired: "Tu sesión ha expirado. Por favor inicia sesión nuevamente.",
+  forbidden: "No tienes permisos para acceder a esa sección.",
+  error: "Ocurrió un error inesperado. Por favor inicia sesión nuevamente.",
 };
 
 function Login() {
@@ -48,6 +52,7 @@ function Login() {
 
   useEffect(() => {
     const { token, role } = getSession();
+
     if (token) {
       navigate(getDefaultRouteByRole(role), { replace: true });
     }
@@ -63,12 +68,22 @@ function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    const newErrors = {};
-    if (!formData.username.trim()) newErrors.username = "Este campo es obligatorio";
-    if (!formData.email.trim()) newErrors.email = "Este campo es obligatorio";
-    if (!formData.password.trim()) newErrors.password = "Este campo es obligatorio";
+    let newErrors = {};
+
+    if (!formData.username.trim()) {
+      newErrors.username = "Este campo es obligatorio";
+    }
+
+    if (!formData.email.trim()) {
+      newErrors.email = "Este campo es obligatorio";
+    }
+
+    if (!formData.password.trim()) {
+      newErrors.password = "Este campo es obligatorio";
+    }
 
     setErrors(newErrors);
+
     if (Object.keys(newErrors).length !== 0) {
       setServerError("");
       return;
@@ -80,28 +95,35 @@ function Login() {
     try {
       const response = await fetch(apiUrl("/api/login"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify(formData),
       });
 
       const data = await response.json().catch(() => ({}));
 
       if (response.status === 401) {
-        setServerError("Credenciales invÃ¡lidas");
+
+        setServerError("Credenciales incorrectas. Verifica tu usuario y contraseña.");
+
         return;
       }
 
       if (!response.ok) {
-        setServerError(data.message || "No se pudo iniciar sesiÃ³n");
+        setServerError(data.message || "No se pudo iniciar sesión");
         return;
       }
 
       if (!data.accessToken) {
-        setServerError("Respuesta invÃ¡lida del servidor");
+        setServerError("Respuesta inválida del servidor");
         return;
       }
 
-      const serverRole = data.role || data.user?.role || "guest";
+      const serverRole =
+        data.role ||
+        data.user?.role ||
+        "guest";
 
       setSession({
         accessToken: data.accessToken,
@@ -111,23 +133,16 @@ function Login() {
         expiresAt: data.expiresAt,
       });
 
-      navigate(getDefaultRouteByRole(serverRole), { replace: true });
+      navigate(
+        getDefaultRouteByRole(serverRole),
+        { replace: true }
+      );
+
     } catch {
       setServerError("No se pudo conectar con el servidor");
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const openLoginPanel = () => {
-    setActivePanel("login");
-    setRegisterError("");
-    setRegisterSuccess("");
-  };
-
-  const openRegisterPanel = () => {
-    setActivePanel("register");
-    setServerError("");
   };
 
   const handleRegisterChange = (e) => {
@@ -143,28 +158,34 @@ function Login() {
     const newErrors = {};
     const emailPattern = /\S+@\S+\.\S+/;
 
-    if (!registerData.name.trim()) newErrors.name = "Este campo es obligatorio";
-    if (!registerData.username.trim()) newErrors.username = "Este campo es obligatorio";
+    if (!registerData.name.trim()) {
+      newErrors.name = "Este campo es obligatorio";
+    }
+
+    if (!registerData.username.trim()) {
+      newErrors.username = "Este campo es obligatorio";
+    }
 
     if (!registerData.email.trim()) {
       newErrors.email = "Este campo es obligatorio";
     } else if (!emailPattern.test(registerData.email)) {
-      newErrors.email = "Ingresa un correo vÃ¡lido";
+      newErrors.email = "Ingresa un correo válido";
     }
 
     if (!registerData.password.trim()) {
       newErrors.password = "Este campo es obligatorio";
     } else if (registerData.password.length < 6) {
-      newErrors.password = "La contraseÃ±a debe tener al menos 6 caracteres";
+      newErrors.password = "La contraseña debe tener al menos 6 caracteres";
     }
 
     if (!registerData.confirmPassword.trim()) {
       newErrors.confirmPassword = "Este campo es obligatorio";
     } else if (registerData.password !== registerData.confirmPassword) {
-      newErrors.confirmPassword = "Las contraseÃ±as no coinciden";
+      newErrors.confirmPassword = "Las contraseñas no coinciden";
     }
 
     setRegisterErrors(newErrors);
+
     if (Object.keys(newErrors).length !== 0) {
       setRegisterError("");
       return;
@@ -177,7 +198,9 @@ function Login() {
     try {
       const response = await fetch(apiUrl("/api/register"), {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({
           name: registerData.name,
           username: registerData.username,
@@ -194,7 +217,11 @@ function Login() {
       }
 
       if (data.accessToken) {
-        const serverRole = data.role || data.user?.role || "user";
+        const serverRole =
+          data.role ||
+          data.user?.role ||
+          "user";
+
         setSession({
           accessToken: data.accessToken,
           refreshToken: data.refreshToken,
@@ -202,11 +229,16 @@ function Login() {
           sessionId: data.sessionId,
           expiresAt: data.expiresAt,
         });
-        navigate(getDefaultRouteByRole(serverRole), { replace: true });
+
+        navigate(
+          getDefaultRouteByRole(serverRole),
+          { replace: true }
+        );
+
         return;
       }
 
-      setRegisterSuccess(data.message || "Cuenta registrada. Ya puedes iniciar sesiÃ³n.");
+      setRegisterSuccess(data.message || "Cuenta registrada. Ya puedes iniciar sesión.");
       setFormData((previous) => ({
         ...previous,
         username: registerData.username,
@@ -221,6 +253,7 @@ function Login() {
         password: "",
         confirmPassword: "",
       });
+      setRegisterErrors({});
     } catch {
       setRegisterError("No se pudo conectar con el servidor");
     } finally {
@@ -228,224 +261,400 @@ function Login() {
     }
   };
 
+  const openLoginPanel = () => {
+    setActivePanel("login");
+    setRegisterError("");
+    setRegisterErrors({});
+  };
+
+  const openRegisterPanel = () => {
+    setActivePanel("register");
+    setServerError("");
+    setErrors({});
+    setRegisterSuccess("");
+  };
+
   return (
     <div className="login-page">
       <TopNavigation currentPage="login" />
-
-      <div className="login-hero">
-        <img src={loginHeroImage} alt="" aria-hidden="true" className="login-hero-image" />
+      <div className="login-background" aria-hidden="true">
+        <img
+          src={loginHeroImage}
+          alt=""
+          className="login-background-image"
+          loading="eager"
+        />
       </div>
+      <div className="login-overlay" aria-hidden="true"></div>
+      <div className="login-glow" aria-hidden="true"></div>
+
+      <header className="login-header">
+        <div className="login-brand">
+          <img src={gymLogo} alt="Gimnasio" className="logo-icon" />
+          <span className="logo-text">GIMNASIO</span>
+        </div>
+
+        <div className="login-header-actions">
+          <button
+            type="button"
+            className="login-home-btn"
+            onClick={() => navigate("/")}
+          >
+            INICIO
+          </button>
+          <button
+            type="button"
+            className="exit-btn"
+            onClick={() => navigate("/")}
+            aria-label="Volver al inicio"
+            title="Salir"
+          >
+            ⮐
+          </button>
+        </div>
+      </header>
 
       <div className="login-wrapper">
-        <div className="login-container">
-          <div className="login-brand" aria-hidden="true">
-            <img src={gymLogo} alt="" className="login-logo" />
-            <span className="login-brand-text">GIMNASIO</span>
-          </div>
+        <section className="login-hero-content">
+          <p className="login-kicker">MÁS ENERGÍA, MÁS DISCIPLINA</p>
+          <h1 className="login-hero-title">
+            TU MEJOR
+            <br />
+            VERSIÓN INICIA
+            <br />
+            AQUÍ
+          </h1>
+          <p className="login-hero-description">
+            Inicia sesión para acceder a tus beneficios, membresía y panel
+            personalizado según tu rol.
+          </p>
 
-          {reasonMessage && (
-            <p className="error-text" role="alert">
-              {reasonMessage}
-            </p>
-          )}
+          <div className="login-hero-badges" aria-hidden="true">
+            <span>+50 CLASES</span>
+            <span>ENTRENADORES CERTIFICADOS</span>
+            <span>INSTALACIONES PREMIUM</span>
+          </div>
+        </section>
+
+        <div className="login-container">
+          <div className="auth-tabs" role="tablist" aria-label="Acceso de cuenta">
+            <button
+              type="button"
+              className={`auth-tab ${activePanel === "login" ? "is-active" : ""}`}
+              role="tab"
+              aria-selected={activePanel === "login"}
+              onClick={openLoginPanel}
+            >
+              INICIAR SESIÓN
+            </button>
+            <button
+              type="button"
+              className={`auth-tab ${activePanel === "register" ? "is-active" : ""}`}
+              role="tab"
+              aria-selected={activePanel === "register"}
+              onClick={openRegisterPanel}
+            >
+              REGISTRARME
+            </button>
+          </div>
 
           {activePanel === "login" ? (
             <>
-              <h2 className="login-title">INICIAR SESIÃ“N</h2>
+              <h2 className="login-title">INGRESA TU USUARIO</h2>
+              <p className="login-subtitle">Accede a tu cuenta de entrenamiento</p>
+
+              {/* ── Mensaje de razón de redirección (401 / 403) ── */}
+              {reasonMessage && (
+                <p
+                  className="auth-notice-text"
+                  role="alert"
+                  aria-live="assertive"
+                >
+                  {reasonMessage}
+                </p>
+              )}
+
+              {registerSuccess && (
+                <p className="auth-success-text" role="status" aria-live="polite">
+                  {registerSuccess}
+                </p>
+              )}
 
               <form
                 onSubmit={handleSubmit}
                 className="login-form"
                 aria-describedby={serverError ? "login-server-error" : undefined}
               >
-                <label htmlFor="login-username">USUARIO</label>
+                <label htmlFor="username">NOMBRE DE USUARIO</label>
                 <input
-                  id="login-username"
+                  id="username"
                   type="text"
                   name="username"
                   value={formData.username}
                   onChange={handleChange}
+                  placeholder="Usuario"
+                  autoComplete="username"
                   disabled={isSubmitting}
                   className={errors.username ? "input-error" : ""}
                   aria-invalid={Boolean(errors.username)}
+                  aria-describedby={errors.username ? "username-error" : undefined}
                 />
                 {errors.username && (
-                  <p className="error-text" role="alert">
+                  <p id="username-error" className="error-text" role="alert">
                     {errors.username}
                   </p>
                 )}
 
-                <label htmlFor="login-email">CORREO ELECTRÃ“NICO</label>
+                <label htmlFor="email">CORREO ELECTRONICO</label>
                 <input
-                  id="login-email"
+                  id="email"
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleChange}
+                  placeholder="correo@ejemplo.com"
+                  autoComplete="email"
                   disabled={isSubmitting}
                   className={errors.email ? "input-error" : ""}
                   aria-invalid={Boolean(errors.email)}
+                  aria-describedby={errors.email ? "email-error" : undefined}
                 />
                 {errors.email && (
-                  <p className="error-text" role="alert">
+                  <p id="email-error" className="error-text" role="alert">
                     {errors.email}
                   </p>
                 )}
 
-                <label htmlFor="login-password">CONTRASEÃ‘A</label>
+                <label htmlFor="password">CONTRASEÑA</label>
                 <input
-                  id="login-password"
+                  id="password"
                   type="password"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}
+                  placeholder="********"
+                  autoComplete="current-password"
                   disabled={isSubmitting}
                   className={errors.password ? "input-error" : ""}
                   aria-invalid={Boolean(errors.password)}
+                  aria-describedby={errors.password ? "password-error" : undefined}
                 />
                 {errors.password && (
-                  <p className="error-text" role="alert">
+                  <p id="password-error" className="error-text" role="alert">
                     {errors.password}
                   </p>
                 )}
 
-                <button type="submit" className="login-btn" disabled={isSubmitting} aria-busy={isSubmitting}>
+                <button
+                  type="submit"
+                  className="login-btn"
+                  disabled={isSubmitting}
+                  aria-busy={isSubmitting}
+                >
                   {isSubmitting ? "INGRESANDO..." : "INICIAR"}
                 </button>
+
+                {isSubmitting && (
+                  <div
+                    className="loader-wrapper"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    <div className="loader" aria-hidden="true"></div>
+                    <span className="loader-text">Validando credenciales...</span>
+                    <span className="sr-only">Cargando</span>
+                  </div>
+                )}
 
                 {serverError && (
                   <p id="login-server-error" className="error-text" role="alert">
                     {serverError}
                   </p>
                 )}
-
-                <button
-                  type="button"
-                  className="forgot-link"
-                  onClick={() => navigate("/forgot-password")}
-                >
-                  Â¿Olvidaste tu contraseÃ±a?
-                </button>
               </form>
 
+              {/* ── Enlace fuera del form para no interferir con el submit ── */}
+              <div className="login-forgot-wrap">
+                <button
+                  type="button"
+                  className="login-switch-btn"
+                  onClick={() => navigate("/forgot-password")}
+                >
+                  ¿Olvidaste tu contraseña?
+                </button>
+              </div>
+
               <div className="login-register-cta">
-                <p>Â¿No tienes cuenta?</p>
-                <button type="button" className="login-switch-btn" onClick={openRegisterPanel}>
-                  REGISTRARME
+                <p>¿No tienes cuenta?</p>
+                <button
+                  type="button"
+                  className="login-switch-btn"
+                  onClick={openRegisterPanel}
+                >
+                  REGÍSTRATE AQUÍ
                 </button>
               </div>
             </>
           ) : (
             <>
-              <h2 className="login-title">REGISTRO</h2>
+              <h2 className="login-title">CREA TU CUENTA</h2>
+              <p className="login-subtitle">Registro rápido para nuevos usuarios</p>
 
-              <form onSubmit={handleRegisterSubmit} className="login-form">
-                <label htmlFor="register-name">NOMBRE</label>
+              <form
+                onSubmit={handleRegisterSubmit}
+                className="login-form register-form"
+                aria-describedby={registerError ? "register-server-error" : undefined}
+              >
+                <label htmlFor="register-name">NOMBRE COMPLETO</label>
                 <input
                   id="register-name"
                   type="text"
                   name="name"
                   value={registerData.name}
                   onChange={handleRegisterChange}
+                  placeholder="Nombre completo"
+                  autoComplete="name"
                   disabled={isRegisterSubmitting}
                   className={registerErrors.name ? "input-error" : ""}
                   aria-invalid={Boolean(registerErrors.name)}
+                  aria-describedby={registerErrors.name ? "register-name-error" : undefined}
                 />
                 {registerErrors.name && (
-                  <p className="error-text" role="alert">
+                  <p id="register-name-error" className="error-text" role="alert">
                     {registerErrors.name}
                   </p>
                 )}
 
-                <label htmlFor="register-username">USUARIO</label>
+                <label htmlFor="register-username">NOMBRE DE USUARIO</label>
                 <input
                   id="register-username"
                   type="text"
                   name="username"
                   value={registerData.username}
                   onChange={handleRegisterChange}
+                  placeholder="Usuario"
+                  autoComplete="username"
                   disabled={isRegisterSubmitting}
                   className={registerErrors.username ? "input-error" : ""}
                   aria-invalid={Boolean(registerErrors.username)}
+                  aria-describedby={
+                    registerErrors.username ? "register-username-error" : undefined
+                  }
                 />
                 {registerErrors.username && (
-                  <p className="error-text" role="alert">
+                  <p id="register-username-error" className="error-text" role="alert">
                     {registerErrors.username}
                   </p>
                 )}
 
-                <label htmlFor="register-email">CORREO ELECTRÃ“NICO</label>
+                <label htmlFor="register-email">CORREO ELECTRONICO</label>
                 <input
                   id="register-email"
                   type="email"
                   name="email"
                   value={registerData.email}
                   onChange={handleRegisterChange}
+                  placeholder="correo@ejemplo.com"
+                  autoComplete="email"
                   disabled={isRegisterSubmitting}
                   className={registerErrors.email ? "input-error" : ""}
                   aria-invalid={Boolean(registerErrors.email)}
+                  aria-describedby={registerErrors.email ? "register-email-error" : undefined}
                 />
                 {registerErrors.email && (
-                  <p className="error-text" role="alert">
+                  <p id="register-email-error" className="error-text" role="alert">
                     {registerErrors.email}
                   </p>
                 )}
 
-                <label htmlFor="register-password">CONTRASEÃ‘A</label>
+                <label htmlFor="register-password">CONTRASEÑA</label>
                 <input
                   id="register-password"
                   type="password"
                   name="password"
                   value={registerData.password}
                   onChange={handleRegisterChange}
+                  placeholder="Mínimo 6 caracteres"
+                  autoComplete="new-password"
                   disabled={isRegisterSubmitting}
                   className={registerErrors.password ? "input-error" : ""}
                   aria-invalid={Boolean(registerErrors.password)}
+                  aria-describedby={
+                    registerErrors.password ? "register-password-error" : undefined
+                  }
                 />
                 {registerErrors.password && (
-                  <p className="error-text" role="alert">
+                  <p id="register-password-error" className="error-text" role="alert">
                     {registerErrors.password}
                   </p>
                 )}
 
-                <label htmlFor="register-confirm-password">CONFIRMAR CONTRASEÃ‘A</label>
+                <label htmlFor="register-confirm-password">CONFIRMAR CONTRASEÑA</label>
                 <input
                   id="register-confirm-password"
                   type="password"
                   name="confirmPassword"
                   value={registerData.confirmPassword}
                   onChange={handleRegisterChange}
+                  placeholder="Repite tu contraseña"
+                  autoComplete="new-password"
                   disabled={isRegisterSubmitting}
                   className={registerErrors.confirmPassword ? "input-error" : ""}
                   aria-invalid={Boolean(registerErrors.confirmPassword)}
+                  aria-describedby={
+                    registerErrors.confirmPassword
+                      ? "register-confirm-password-error"
+                      : undefined
+                  }
                 />
                 {registerErrors.confirmPassword && (
-                  <p className="error-text" role="alert">
+                  <p
+                    id="register-confirm-password-error"
+                    className="error-text"
+                    role="alert"
+                  >
                     {registerErrors.confirmPassword}
                   </p>
                 )}
 
-                <button type="submit" className="login-btn" disabled={isRegisterSubmitting} aria-busy={isRegisterSubmitting}>
+                <button
+                  type="submit"
+                  className="login-btn"
+                  disabled={isRegisterSubmitting}
+                  aria-busy={isRegisterSubmitting}
+                >
                   {isRegisterSubmitting ? "REGISTRANDO..." : "REGISTRARME"}
                 </button>
 
-                {registerError && (
-                  <p className="error-text" role="alert">
-                    {registerError}
-                  </p>
+                {isRegisterSubmitting && (
+                  <div
+                    className="loader-wrapper"
+                    role="status"
+                    aria-live="polite"
+                    aria-atomic="true"
+                  >
+                    <div className="loader" aria-hidden="true"></div>
+                    <span className="loader-text">Creando tu cuenta...</span>
+                    <span className="sr-only">Cargando</span>
+                  </div>
                 )}
 
-                {registerSuccess && (
-                  <p className="success-text" role="status" aria-live="polite">
-                    {registerSuccess}
+                {registerError && (
+                  <p id="register-server-error" className="error-text" role="alert">
+                    {registerError}
                   </p>
                 )}
               </form>
 
               <div className="login-register-cta">
-                <p>Â¿Ya tienes cuenta?</p>
-                <button type="button" className="login-switch-btn" onClick={openLoginPanel}>
-                  VOLVER A INICIAR SESIÃ“N
+                <p>¿Ya tienes cuenta?</p>
+                <button
+                  type="button"
+                  className="login-switch-btn"
+                  onClick={openLoginPanel}
+                >
+                  VOLVER A INICIAR SESIÓN
                 </button>
               </div>
             </>
@@ -457,4 +666,3 @@ function Login() {
 }
 
 export default Login;
-
