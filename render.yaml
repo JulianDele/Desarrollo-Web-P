@@ -7,19 +7,18 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
-      # Set these in Render dashboard (do not commit real secrets):
       - key: JWT_SECRET
         sync: false
       - key: RESET_TOKEN_SECRET
         sync: false
       - key: MONGO_URI
         sync: false
-      # Must match the frontend static site URL once created:
       - key: CORS_ORIGIN
         sync: false
 
-  - type: static
+  - type: web
     name: desarrollo-web-p-frontend
+    env: static
     rootDir: frontend
     buildCommand: npm ci && npm run build
     staticPublishPath: dist
